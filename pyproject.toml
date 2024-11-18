@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "edamonia-backend"
+version = "0.1.0"
+description = ""
+authors = ["Marik <57559857+BuildDear@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.5"
+uvicorn = "^0.32.0"
+pandas = "^2.2.3"
+torch = "^2.5.1"
+ftfy = "^6.3.1"
+tqdm = "^4.67.0"
+emoji = "^2.14.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
