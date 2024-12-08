@@ -3,6 +3,7 @@ import string
 import ftfy
 import emoji
 import pandas as pd
+import pymorphy2
 from tqdm import tqdm
 
 from edamonia_backend.logic.preprocessing.stop_words import century_words, additional_replacements, number_words, \
@@ -109,10 +110,18 @@ def remove_emojis(text):
     return emoji.replace_emoji(text, replace='')
 
 
-def preprocess_text(text):
+
+def lemmatize_text(text):
+    morph = pymorphy2.MorphAnalyzer(lang='uk')
+
+    return ' '.join([morph.parse(word)[0].normal_form for word in text.split()])
+
+
+def preprocess_text_embedded(text):
     """
     Perform a series of text preprocessing steps such as encoding fixes, removing tags, URLs, special characters,
-    punctuation, emojis, replacing specific words, and removing extra spaces.
+    punctuation, emojis, replacing specific words, and r
+    emoving extra spaces.
     :param text: The input text as a string.
     :return: The fully preprocessed text as a string.
     """
@@ -130,7 +139,30 @@ def preprocess_text(text):
     return ' '.join(tokens)
 
 
-def process_data(input_path, output_path):
+def preprocess_text_frequency(text):
+    """
+    Perform a series of text preprocessing steps such as encoding fixes, removing tags, URLs, special characters,
+    punctuation, emojis, replacing specific words, and r
+    emoving extra spaces.
+    :param text: The input text as a string.
+    :return: The fully preprocessed text as a string.
+    """
+    text = fix_text_encoding(text)
+    text = remove_html_tags(text)
+    text = remove_urls(text)
+    text = remove_special_characters(text)
+    text = remove_emojis(text)
+    text = remove_puncts(text)
+    text = replace_century_words(text)
+    text = replace_additional_words(text)
+    text = replace_number_words(text)
+    text = remove_extra_spaces(text)
+    tokens = [word for word in text.split() if word not in ukrainian_stop_words]
+    text = lemmatize_text(text)
+    return ' '.join(tokens)
+
+
+def process_data_embedded(input_path, output_path):
     """
     Process textual data from a CSV file, apply preprocessing, and save the processed results to a new CSV file.
     :param input_path: The file path to the input CSV containing 'content' and 'news_id' columns.
@@ -144,7 +176,29 @@ def process_data(input_path, output_path):
     corpus = documents_df['content'].tolist()
 
     # Preprocess texts in a single-threaded mode
-    processed_corpus = [preprocess_text(text) for text in tqdm(corpus, total=len(corpus))]
+    processed_corpus = [preprocess_text_embedded(text) for text in tqdm(corpus, total=len(corpus))]
+
+    # Save the processed corpus to a CSV
+    df = pd.DataFrame({'news_id': documents_df['news_id'], 'content': processed_corpus})
+    df.to_csv(output_path, index=False)
+    print(f"File {output_path} created successfully.")
+
+
+def process_data_frequency(input_path, output_path):
+    """
+    Process textual data from a CSV file, apply preprocessing, and save the processed results to a new CSV file.
+    :param input_path: The file path to the input CSV containing 'content' and 'news_id' columns.
+    :param output_path: The file path to save the processed CSV.
+    :return: None. Saves the processed file at the output path.
+    """
+    # Load the data
+    documents_df = pd.read_csv(input_path)
+
+    # Extract the text corpus
+    corpus = documents_df['content'].tolist()
+
+    # Preprocess texts in a single-threaded mode
+    processed_corpus = [preprocess_text_frequency(text) for text in tqdm(corpus, total=len(corpus))]
 
     # Save the processed corpus to a CSV
     df = pd.DataFrame({'news_id': documents_df['news_id'], 'content': processed_corpus})
