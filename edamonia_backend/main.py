@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException, File, UploadFile
 from pydantic import BaseModel
 import shutil
 
+from edamonia_backend.logic.emb_models.emd import preprocess_and_generate_embeddings, load_embeddings
 from edamonia_backend.logic.preprocessing.preprocess_data import process_data_embedded, preprocess_text_embedded
 from edamonia_backend.logic.ranking_by_frequency.bm25lus import (
     reindex_bm25,
@@ -20,6 +21,7 @@ PRIMARY_CSV_DIR_PATH = "data/csv_files/primary_csv"
 CLEANED_CSV_DIR_PATH = "data/csv_files/cleaned_csv"
 INDEX_FILE_PATH = "data/csv_files/bm25_index.pkl"
 COMBINED_FILE_CSV_PATH = "data/csv_files/combined_cleaned.csv"
+EMBEDDINGS_FILE_PATH = "data/csv_files/embeddings.pkl"
 
 os.makedirs(PRIMARY_CSV_DIR_PATH, exist_ok=True)
 os.makedirs(CLEANED_CSV_DIR_PATH, exist_ok=True)
@@ -39,7 +41,7 @@ async def main():
 @app.post("/process-file/", summary="Process and combine uploaded CSV files")
 async def process_csv(files: List[UploadFile] = File(...)):
     """
-    Обробляє завантажені файли CSV, об'єднує їх в один файл, забезпечує унікальність ID, і створює BM25 індекс.
+    Обробляє завантажені файли CSV, об'єднує їх в один файл, забезпечує унікальність ID, створює BM25 індекс та генерує ембеддінги.
     """
     try:
         if not files:
@@ -78,6 +80,9 @@ async def process_csv(files: List[UploadFile] = File(...)):
             combined_df = ensure_unique_ids(combined_df, "news_id")
             combined_df.to_csv(COMBINED_FILE_CSV_PATH, index=False)
 
+            # Генерація ембеддінгів
+            preprocess_and_generate_embeddings(COMBINED_FILE_CSV_PATH, EMBEDDINGS_FILE_PATH)
+
             # Створення BM25 індексу
             reindex_bm25(COMBINED_FILE_CSV_PATH, INDEX_FILE_PATH)
 
@@ -92,8 +97,8 @@ async def process_csv(files: List[UploadFile] = File(...)):
 @app.post("/ask-bot/")
 async def ask(query: QueryModel):
     """
-    Повертає проранжовані документи на основі текстового запиту
-    та генерує відповідь на основі цих документів.
+    Повертає проранжовані документи на основі текстового запиту та генерує відповідь на основі цих документів.
+    Використовує BM25 та ембеддінги для покращення результатів.
     """
     try:
         # Завантажуємо BM25 індекс
@@ -101,6 +106,11 @@ async def ask(query: QueryModel):
 
         if not bm25 or not hasattr(bm25, "get_scores"):
             raise HTTPException(status_code=500, detail="BM25 index is invalid or corrupted.")
+
+        # Завантажуємо ембеддінги
+        embeddings = load_embeddings(EMBEDDINGS_FILE_PATH)
+        if embeddings is None:
+            raise HTTPException(status_code=500, detail="Embeddings are not available.")
 
         # Завантажуємо файл для отримання текстів документів
         df = pd.read_csv(COMBINED_FILE_CSV_PATH)
@@ -114,19 +124,25 @@ async def ask(query: QueryModel):
         if not tokenized_query:
             raise HTTPException(status_code=400, detail="Query is empty or invalid after preprocessing.")
 
-        # Ранжування документів
-        scores = bm25.get_scores(tokenized_query)
-        top_k = 3
-        top_k_indices = scores.argsort()[-top_k:][::-1]
+        # Ранжування документів за допомогою BM25
+        scores_bm25 = bm25.get_scores(tokenized_query)
+        top_k_bm25 = 3
+        top_k_indices_bm25 = scores_bm25.argsort()[-top_k_bm25:][::-1]
 
-        # Формуємо результати
+        # Ранжування документів за допомогою ембеддінгів
+        query_embedding = embeddings.embed_query(query.query)  # Припускаємо, що embed_query генерує ембеддинг для запиту
+        document_embeddings = embeddings.embed_documents(df["content"].tolist())
+        similarity_scores = embeddings.calculate_similarity(query_embedding, document_embeddings)
+        top_k_embeddings_indices = similarity_scores.argsort()[-top_k_bm25:][::-1]
+
+        # Формуємо результати з урахуванням BM25 та ембеддінгів
         ranked_documents = [
             {
                 "id": df.iloc[idx]["news_id"],  # Вибір коректного ID
-                "score": float(scores[idx]),
+                "score": float(scores_bm25[idx] + similarity_scores[idx]),  # Можна комбінувати бали
                 "content": df.iloc[idx]["content"]
             }
-            for idx in top_k_indices
+            for idx in top_k_bm25
         ]
 
         # Формуємо контекст із ранжованих документів
