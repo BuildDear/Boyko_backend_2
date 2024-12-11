@@ -1,7 +1,7 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-model_id = "BSC-LT/salamandra-2b-instruct-aina-hack"
+model_id = "BSC-LT/salamandra-2b-instruct"
 
 
 model = AutoModelForCausalLM.from_pretrained(
@@ -15,6 +15,8 @@ tokenizer = AutoTokenizer.from_pretrained(
     model_id,
     trust_remote_code=True
 )
+
+tokenizer.chat_template = "default"
 
 
 def generate_assistant_response(question: str):
@@ -44,7 +46,7 @@ def generate_assistant_response(question: str):
     generated_ids = model.generate(
         **model_inputs,
         max_new_tokens=512,  # Обмеження довжини відповіді
-        temperature=0.1,  # Контроль креативності
+        temperature=0.4,  # Контроль креативності
         do_sample=True,  # Використання семплювання для варіативності
     )
 

@@ -12,19 +12,22 @@ from edamonia_backend.logic.ranking_by_frequency.bm25lus import (
     load_bm25_index,
     ensure_unique_ids
 )
+from edamonia_backend.logic.ranking_by_frequency.tf_idf import load_tfidf_index, get_tfidf_scores, reindex_tfidf
 from edamonia_backend.logic.responce_by_llm.llm import generate_assistant_response
 
 app = FastAPI()
 
 PRIMARY_CSV_DIR_PATH = "data/csv_files/primary_csv"
 CLEANED_CSV_DIR_PATH = "data/csv_files/cleaned_csv"
-INDEX_FILE_PATH = "data/csv_files/bm25_index.pkl"
+BM25PUS_INDEX_FILE_PATH = "data/csv_files/bm25_index.pkl"
+TFIDF_INDEX_FILE_PATH = "data/csv_files/tfidf_index.pkl"
 COMBINED_FILE_CSV_PATH = "data/csv_files/combined_cleaned.csv"
+
 
 os.makedirs(PRIMARY_CSV_DIR_PATH, exist_ok=True)
 os.makedirs(CLEANED_CSV_DIR_PATH, exist_ok=True)
 
-class QueryModel(BaseModel):
+class QueryRequest(BaseModel):
     query: str
 
 
@@ -79,7 +82,8 @@ async def process_csv(files: List[UploadFile] = File(...)):
             combined_df.to_csv(COMBINED_FILE_CSV_PATH, index=False)
 
             # Створення BM25 індексу
-            reindex_bm25(COMBINED_FILE_CSV_PATH, INDEX_FILE_PATH)
+            reindex_bm25(COMBINED_FILE_CSV_PATH, BM25PUS_INDEX_FILE_PATH)
+            reindex_tfidf(COMBINED_FILE_CSV_PATH, TFIDF_INDEX_FILE_PATH)
 
             return {"message": f"Files processed and combined successfully: {', '.join(processed_files)}"}
         else:
@@ -89,20 +93,20 @@ async def process_csv(files: List[UploadFile] = File(...)):
         raise HTTPException(status_code=500, detail=f"An error occurred during file processing: {str(e)}")
 
 
+def weighted_voting(bm25_scores, tfidf_scores, alpha=0.5):
+    return alpha * bm25_scores + (1 - alpha) * tfidf_scores
+
+
 @app.post("/ask-bot/")
-async def ask(query: QueryModel):
-    """
-    Повертає проранжовані документи на основі текстового запиту
-    та генерує відповідь на основі цих документів.
-    """
+async def ask(query: QueryRequest):
     try:
-        # Завантажуємо BM25 індекс
-        bm25 = load_bm25_index(INDEX_FILE_PATH)
+
+        bm25 = load_bm25_index(BM25PUS_INDEX_FILE_PATH)
+        vectorizer, tfidf_matrix = load_tfidf_index(TFIDF_INDEX_FILE_PATH)
 
         if not bm25 or not hasattr(bm25, "get_scores"):
             raise HTTPException(status_code=500, detail="BM25 index is invalid or corrupted.")
 
-        # Завантажуємо файл для отримання текстів документів
         df = pd.read_csv(COMBINED_FILE_CSV_PATH)
         if df.empty or "content" not in df.columns:
             raise HTTPException(status_code=500, detail="Combined file is missing or invalid.")
@@ -114,20 +118,27 @@ async def ask(query: QueryModel):
         if not tokenized_query:
             raise HTTPException(status_code=400, detail="Query is empty or invalid after preprocessing.")
 
-        # Ранжування документів
-        scores = bm25.get_scores(tokenized_query)
-        top_k = 3
-        top_k_indices = scores.argsort()[-top_k:][::-1]
+        # Отримуємо оцінки з BM25
+        bm25_scores = bm25.get_scores(tokenized_query)
+
+        # Отримуємо оцінки з TF-IDF
+        tfidf_scores = get_tfidf_scores(query.query, vectorizer, tfidf_matrix)
+
+        # Зважене голосування
+        combined_scores = weighted_voting(bm25_scores, tfidf_scores, alpha=0.5)
 
         # Формуємо результати
+        top_k = 3
+        top_k_indices = combined_scores.argsort()[-top_k:][::-1]
+
         ranked_documents = [
-            {
-                "id": df.iloc[idx]["news_id"],  # Вибір коректного ID
-                "score": float(scores[idx]),
-                "content": df.iloc[idx]["content"]
-            }
-            for idx in top_k_indices
-        ]
+        {
+            "id": df.iloc[idx]["news_id"],
+            "score": float(combined_scores[idx]),
+            "content": df.iloc[idx]["content"]
+        }
+        for idx in top_k_indices
+    ]
 
         # Формуємо контекст із ранжованих документів
         context = ' '.join(doc['content'] for doc in ranked_documents)
