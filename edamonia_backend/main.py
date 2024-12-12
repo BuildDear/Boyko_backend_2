@@ -10,13 +10,15 @@ import shutil
 from sentence_transformers import SentenceTransformer
 
 from edamonia_backend.logic.emb_models.emd import preprocess_and_generate_embeddings, load_embeddings
+from edamonia_backend.logic.preprocessing.chunking import process_txt, save_chunks_to_csv, process_pdf, process_docx, \
+    process_json
 from edamonia_backend.logic.preprocessing.preprocess_data import process_data_embedded, preprocess_text_embedded
 from edamonia_backend.logic.ranking_by_frequency.bm25lus import (
     reindex_bm25,
     load_bm25_index,
     ensure_unique_ids
 )
-from edamonia_backend.logic.ranking_by_frequency.tf_idf import load_tfidf_index, get_tfidf_scores
+from edamonia_backend.logic.ranking_by_frequency.tf_idf import load_tfidf_index, get_tfidf_scores, reindex_tfidf
 from edamonia_backend.logic.responce_by_llm.llm import generate_assistant_response
 
 app = FastAPI()
@@ -65,20 +67,41 @@ async def process_csv(files: List[UploadFile] = File(...)):
                 raise HTTPException(status_code=400, detail="No file name found in uploaded file")
 
             file_name, file_ext = os.path.splitext(file.filename)
+            input_file_path = os.path.join(PRIMARY_CSV_DIR_PATH, file.filename)
+
+            with open(input_file_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
 
             if file_ext.lower() == ".csv":
-                primary_file_name = f"{file_name}_primary{file_ext}"
-                input_file_path = os.path.join(PRIMARY_CSV_DIR_PATH, primary_file_name)
-
-                # Зберігаємо в primary
-                with open(input_file_path, "wb") as buffer:
-                    shutil.copyfileobj(file.file, buffer)
-
-                # Обробляємо файл
-                cleaned_file_name = f"{file_name}_cleaned{file_ext}"
+                cleaned_file_name = f"{file_name}_cleaned.csv"
                 output_file_path = os.path.join(CLEANED_CSV_DIR_PATH, cleaned_file_name)
                 process_data_embedded(input_file_path, output_file_path)
                 processed_files.append(file.filename)
+
+            elif file_ext.lower() == ".txt":
+                chunks = process_txt(input_file_path)
+                output_file_path = os.path.join(CLEANED_CSV_DIR_PATH, f"{file_name}_chunks.csv")
+                save_chunks_to_csv(chunks, output_file_path)
+                processed_files.append(file.filename)
+
+            elif file_ext.lower() == ".pdf":
+                chunks = process_pdf(input_file_path)
+                output_file_path = os.path.join(CLEANED_CSV_DIR_PATH, f"{file_name}_chunks.csv")
+                save_chunks_to_csv(chunks, output_file_path)
+                processed_files.append(file.filename)
+
+            elif file_ext.lower() == ".docx":
+                chunks = process_docx(input_file_path)
+                output_file_path = os.path.join(CLEANED_CSV_DIR_PATH, f"{file_name}_chunks.csv")
+                save_chunks_to_csv(chunks, output_file_path)
+                processed_files.append(file.filename)
+
+            elif file_ext.lower() == ".json":
+                chunks = process_json(input_file_path)
+                output_file_path = os.path.join(CLEANED_CSV_DIR_PATH, f"{file_name}_chunks.csv")
+                save_chunks_to_csv(chunks, output_file_path)
+                processed_files.append(file.filename)
+
             else:
                 raise HTTPException(status_code=400, detail=f"Unsupported file type: {file_ext}")
 
@@ -96,6 +119,7 @@ async def process_csv(files: List[UploadFile] = File(...)):
 
             # Створення BM25 індексу
             reindex_bm25(COMBINED_FILE_CSV_PATH, BM25PUS_INDEX_FILE_PATH)
+            reindex_tfidf(COMBINED_FILE_CSV_PATH, TFIDF_INDEX_FILE_PATH)
 
             return {"message": f"Files processed and combined successfully: {', '.join(processed_files)}"}
         else:
