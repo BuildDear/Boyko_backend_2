@@ -1,15 +1,25 @@
+import os
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+from dotenv import load_dotenv
 from edamonia_backend.logic.preprocessing.preprocess_data import preprocess_text_embedded
 from sentence_transformers import SentenceTransformer
 from huggingface_hub import login
-login("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")
 
+# Load environment variables from .env
+load_dotenv()
 
+# Retrieve the Hugging Face token
+hf_token = os.getenv("HF_TOKEN")
+if hf_token is None:
+    raise ValueError("Hugging Face token is not set in the .env file.")
 
+# Login to Hugging Face
+login(hf_token)
+
+# Initialize the model
 model = SentenceTransformer("intfloat/multilingual-e5-large")
-
 
 def preprocess_and_generate_embeddings(input_path):
     """
@@ -34,7 +44,6 @@ def preprocess_and_generate_embeddings(input_path):
     save_embeddings(output_embeddings_path, embeddings)
     print(f"Ембеддинги збережено у {output_embeddings_path}.")
 
-
 def generate_embeddings(texts):
     """
     Генерує ембеддинги для списку текстів за допомогою SentenceTransformer.
@@ -44,8 +53,6 @@ def generate_embeddings(texts):
     embeddings = model.encode(texts, show_progress_bar=True, batch_size=16)
     return np.array(embeddings)
 
-
-
 def save_embeddings(output_path, embeddings):
     """
     Зберігає ембеддинги в файл
@@ -53,7 +60,6 @@ def save_embeddings(output_path, embeddings):
     :param embeddings: ембеддинги для збереження
     """
     np.save(output_path, embeddings)
-
 
 def load_embeddings(input_path):
     """
