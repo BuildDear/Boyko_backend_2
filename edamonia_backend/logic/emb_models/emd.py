@@ -7,19 +7,16 @@ from edamonia_backend.logic.preprocessing.preprocess_data import preprocess_text
 from sentence_transformers import SentenceTransformer
 from huggingface_hub import login
 
-# Load environment variables from .env
 load_dotenv()
 
-# Retrieve the Hugging Face token
 hf_token = os.getenv("HF_TOKEN")
 if hf_token is None:
     raise ValueError("Hugging Face token is not set in the .env file.")
 
-# Login to Hugging Face
 login(hf_token)
 
 # Initialize the model
-model = SentenceTransformer("intfloat/multilingual-e5-large")
+model = SentenceTransformer("intfloat/e5-small")
 
 def preprocess_and_generate_embeddings(input_path):
     """

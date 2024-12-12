@@ -45,7 +45,7 @@ def generate_assistant_response(question: str):
     # Генерація відповіді
     generated_ids = model.generate(
         **model_inputs,
-        max_new_tokens=512,  # Обмеження довжини відповіді
+        max_new_tokens=64,  # Обмеження довжини відповіді
         temperature=0.4,  # Контроль креативності
         do_sample=True,  # Використання семплювання для варіативності
     )
