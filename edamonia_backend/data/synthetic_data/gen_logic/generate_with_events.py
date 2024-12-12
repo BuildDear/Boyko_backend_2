@@ -61,7 +61,7 @@ def generate_synthetic_data(n_rows):
 
 
 # Generate synthetic data
-synthetic_data = generate_synthetic_data(100000)
+synthetic_data = generate_synthetic_data(100)
 
 # synthetic_data = synthetic_data.sort_values(by='Date', ascending=False)
 
@@ -69,4 +69,4 @@ synthetic_data = generate_synthetic_data(100000)
 print(synthetic_data.head())
 
 # Or, if you'd like to export it to a CSV file
-synthetic_data.to_csv('data/datasets/data_with_events.csv', index=False)
+synthetic_data.to_csv('../gen_data/data_with_events.csv', index=False)

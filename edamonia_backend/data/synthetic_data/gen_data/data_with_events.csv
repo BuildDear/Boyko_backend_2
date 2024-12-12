@@ -1,0 +1,101 @@
+Date,Day_of_Week,Season,Weather,Product,Category,Unit_Price,Num_Customers,Sales,Stocks,Shelf_Life,Days_Until_Next_Purchase,Event,Purchase_Quantity
+2004-01-03,Saturday,Winter,Cloudy,Milk,Dairy,5.2,7358,4409814.247910453,30,7,7,None,79
+2003-12-31,Wednesday,Winter,Cold,Lettuce,Vegetables,6.0,7522,4492924.531111149,7,5,1,New Year,85
+2003-12-31,Wednesday,Winter,Cloudy,Tomatoes,Vegetables,12.5,7392,4473055.00345296,2,10,1,New Year,83
+2004-01-03,Saturday,Winter,Cold,Pork,Other,25.6,7607,4566473.943562835,11,7,7,None,76
+2004-01-04,Sunday,Winter,Snowy,Pork,Other,25.6,5449,3272901.087491752,9,7,1,None,75
+2004-01-02,Friday,Winter,Cloudy,Tomatoes,Vegetables,12.5,7418,4480760.70119052,22,10,10,Corporate Event,70
+2004-01-03,Saturday,Winter,Cold,Lettuce,Vegetables,6.0,7452,4472724.292931947,26,5,5,Special Promotion,72
+2004-01-03,Saturday,Winter,Cloudy,Milk,Dairy,5.2,7487,4510565.080585459,7,7,1,None,90
+2004-01-03,Saturday,Winter,Cloudy,Salmon,Other,36.8,7507,4500665.789022754,24,3,3,Corporate Event,71
+2004-01-04,Sunday,Winter,Snowy,Pork,Other,25.6,5990,3574770.6347024357,13,7,7,Holiday Special,65
+2004-01-03,Saturday,Winter,Cold,Eggs,Dairy,7.2,7376,4424251.6277604075,5,21,1,Corporate Event,84
+2004-01-04,Sunday,Winter,Cold,Salmon,Other,36.8,7288,4397540.850770917,17,3,3,Holiday Special,75
+2004-01-06,Tuesday,Winter,Cloudy,Eggs,Dairy,7.2,7492,4516025.689217584,22,21,21,None,75
+2004-01-04,Sunday,Winter,Snowy,Apples,Fruits,4.4,6035,3618474.458572299,13,30,30,None,75
+2004-01-02,Friday,Winter,Snowy,Potatoes,Vegetables,1.4,5701,3406588.3253275766,19,90,90,Corporate Event,65
+2004-01-05,Monday,Winter,Cold,Tomatoes,Vegetables,12.5,7643,4555159.532460188,19,10,10,Birthdays,75
+2004-01-04,Sunday,Winter,Cold,Pork,Other,25.6,7796,4677715.512670462,10,7,7,Holiday Special,75
+2004-01-03,Saturday,Winter,Snowy,Cheese,Dairy,28.0,5718,3444072.5033850996,24,90,90,Seasonal Event,65
+2004-01-06,Tuesday,Winter,Cloudy,Tomatoes,Vegetables,12.5,7247,4369783.062289052,8,10,1,Birthdays,82
+2004-01-03,Saturday,Winter,Cloudy,Milk,Dairy,5.2,7409,4397965.884387356,16,7,7,Birthdays,78
+2004-01-06,Tuesday,Winter,Snowy,Cheese,Dairy,28.0,5409,3243713.2585864738,17,90,90,None,65
+2004-01-06,Tuesday,Winter,Cloudy,Tomatoes,Vegetables,12.5,6900,4103172.542054381,30,10,10,None,71
+2004-01-03,Saturday,Winter,Cloudy,Potatoes,Vegetables,1.4,7454,4470243.855298723,28,90,90,None,78
+2004-01-05,Monday,Winter,Cloudy,Apples,Fruits,4.4,7250,4386524.616954108,24,30,30,None,71
+2004-01-03,Saturday,Winter,Cloudy,Lettuce,Vegetables,6.0,7334,4423963.0780243855,18,5,5,Birthdays,70
+2004-01-05,Monday,Winter,Cloudy,Apples,Fruits,4.4,7085,4272897.5498136915,5,30,1,Special Promotion,85
+2004-01-06,Tuesday,Winter,Cloudy,Pork,Other,25.6,7441,4470521.009403863,20,7,7,Holiday Special,78
+2004-01-03,Saturday,Winter,Cloudy,Lettuce,Vegetables,6.0,7342,4394354.015460394,1,5,1,Holiday Special,83
+2004-01-05,Monday,Winter,Cloudy,Milk,Dairy,5.2,7281,4401009.904069987,23,7,7,Corporate Event,78
+2004-01-09,Friday,Winter,Snowy,Tomatoes,Vegetables,12.5,5921,3569710.7978923074,1,10,1,Corporate Event,70
+2004-01-08,Thursday,Winter,Snowy,Apples,Fruits,4.4,5814,3508940.361295964,24,30,30,None,60
+2004-01-06,Tuesday,Winter,Cloudy,Pork,Other,25.6,7609,4595367.70472694,8,7,1,Birthdays,85
+2004-01-11,Sunday,Winter,Cold,Apples,Fruits,4.4,7403,4417119.693551556,16,30,30,None,75
+2004-01-05,Monday,Winter,Cold,Salmon,Other,36.8,7663,4585019.009210309,4,3,1,Holiday Special,82
+2004-01-13,Tuesday,Winter,Cloudy,Apples,Fruits,4.4,7417,4439032.1974187875,23,30,30,None,71
+2004-01-06,Tuesday,Winter,Cold,Lettuce,Vegetables,6.0,7453,4478234.4530296605,13,5,5,Holiday Special,74
+2004-01-07,Wednesday,Winter,Cold,Pork,Other,25.6,7190,4366530.718078925,24,7,7,Corporate Event,77
+2004-01-11,Sunday,Winter,Cloudy,Tomatoes,Vegetables,12.5,7421,4460383.591385495,21,10,10,Corporate Event,75
+2004-01-07,Wednesday,Winter,Snowy,Lettuce,Vegetables,6.0,5643,3413748.811148555,2,5,1,Corporate Event,70
+2004-01-16,Friday,Winter,Snowy,Apples,Fruits,4.4,5564,3329410.5415043794,15,30,30,Holiday Special,60
+2004-01-06,Tuesday,Winter,Cold,Milk,Dairy,5.2,7565,4532920.958132024,18,7,7,Seasonal Event,75
+2004-01-09,Friday,Winter,Cloudy,Cheese,Dairy,28.0,7621,4602721.558981899,10,90,90,None,78
+2004-01-12,Monday,Winter,Cold,Tomatoes,Vegetables,12.5,7195,4333427.507297888,2,10,1,None,83
+2004-01-07,Wednesday,Winter,Cloudy,Milk,Dairy,5.2,7605,4550557.196862561,21,7,7,Holiday Special,78
+2004-01-12,Monday,Winter,Cold,Tomatoes,Vegetables,12.5,7388,4443585.157124062,30,10,10,None,71
+2004-01-12,Monday,Winter,Cold,Tomatoes,Vegetables,12.5,7405,4457810.767316894,12,10,10,None,75
+2004-01-07,Wednesday,Winter,Cloudy,Milk,Dairy,5.2,7086,4261426.180443991,29,7,7,Corporate Event,80
+2004-01-12,Monday,Winter,Cloudy,Cheese,Dairy,28.0,7121,4284446.235776882,29,90,90,None,76
+2004-01-03,Saturday,Winter,Cloudy,Chicken,Meat,19.5,7128,4268317.111657644,30,5,5,Seasonal Event,74
+2004-01-06,Tuesday,Winter,Cloudy,Salmon,Other,36.8,7762,4649438.466282909,29,3,3,Seasonal Event,73
+2004-01-08,Thursday,Winter,Cloudy,Lettuce,Vegetables,6.0,7445,4471151.107112312,27,5,5,Holiday Special,75
+2004-01-06,Tuesday,Winter,Snowy,Salmon,Other,36.8,6217,3736174.67302324,12,3,3,None,72
+2004-01-13,Tuesday,Winter,Snowy,Cheese,Dairy,28.0,5454,3281743.6425680798,8,90,1,None,75
+2004-01-08,Thursday,Winter,Cloudy,Lettuce,Vegetables,6.0,7239,4359058.8306071535,15,5,5,Birthdays,71
+2004-01-08,Thursday,Winter,Snowy,Milk,Dairy,5.2,5824,3482655.203138876,23,7,7,Seasonal Event,65
+2004-01-17,Saturday,Winter,Cloudy,Apples,Fruits,4.4,7351,4391175.518167785,7,30,1,None,84
+2004-01-08,Thursday,Winter,Cloudy,Salmon,Other,36.8,7445,4468936.808029062,28,3,3,None,72
+2004-01-19,Monday,Winter,Cloudy,Apples,Fruits,4.4,7682,4604698.049401723,3,30,1,None,80
+2004-01-09,Friday,Winter,Cold,Pork,Other,25.6,7232,4345510.485172379,16,7,7,None,76
+2004-01-14,Wednesday,Winter,Cloudy,Tomatoes,Vegetables,12.5,7381,4439258.9084455175,8,10,1,None,81
+2004-01-05,Monday,Winter,Cold,Chicken,Meat,19.5,7243,4326179.8377335565,17,5,5,Special Promotion,72
+2004-01-10,Saturday,Winter,Cold,Salmon,Other,36.8,7339,4405260.268609873,13,3,3,None,74
+2004-01-22,Thursday,Winter,Cold,Apples,Fruits,4.4,7590,4536228.698354531,29,30,30,Corporate Event,75
+2004-01-09,Friday,Winter,Snowy,Lettuce,Vegetables,6.0,5492,3316154.886294367,30,5,5,None,60
+2004-01-06,Tuesday,Winter,Cold,Potatoes,Vegetables,1.4,7320,4410337.823700928,12,90,90,Corporate Event,77
+2004-01-24,Saturday,Winter,Cloudy,Apples,Fruits,4.4,7679,4606376.468289479,19,30,30,None,74
+2004-01-06,Tuesday,Winter,Snowy,Chicken,Meat,19.5,5854,3507318.39050722,1,5,1,Holiday Special,70
+2004-01-11,Sunday,Winter,Snowy,Pork,Other,25.6,5732,3441689.6179426764,2,7,1,None,75
+2004-01-09,Friday,Winter,Cloudy,Chicken,Meat,19.5,7218,4332034.801031573,13,5,5,Corporate Event,71
+2004-01-07,Wednesday,Winter,Snowy,Eggs,Dairy,7.2,5534,3316026.2833397323,19,21,21,None,60
+2004-01-14,Wednesday,Winter,Snowy,Pork,Other,25.6,5809,3442832.0487450436,16,7,7,None,65
+2004-01-12,Monday,Winter,Cold,Chicken,Meat,19.5,7341,4371992.611619387,7,5,1,None,84
+2004-01-15,Thursday,Winter,Cloudy,Chicken,Meat,19.5,7498,4530584.997784361,10,5,5,Birthdays,75
+2004-01-09,Friday,Winter,Cloudy,Eggs,Dairy,7.2,7537,4519410.494305975,20,21,21,None,75
+2004-01-10,Saturday,Winter,Snowy,Lettuce,Vegetables,6.0,5586,3346932.2882808843,9,5,1,Seasonal Event,70
+2004-01-11,Sunday,Winter,Cloudy,Eggs,Dairy,7.2,7204,4336007.994904458,5,21,1,Corporate Event,81
+2004-01-15,Thursday,Winter,Snowy,Cheese,Dairy,28.0,5564,3321800.577402009,25,90,90,None,65
+2004-01-06,Tuesday,Winter,Cloudy,Potatoes,Vegetables,1.4,7714,4639919.773682629,24,90,90,Holiday Special,79
+2004-01-27,Tuesday,Winter,Cold,Apples,Fruits,4.4,7414,4473850.221399568,30,30,30,Holiday Special,74
+2004-01-08,Thursday,Winter,Cold,Potatoes,Vegetables,1.4,7593,4519081.050477084,1,90,1,None,89
+2004-01-14,Wednesday,Winter,Cloudy,Tomatoes,Vegetables,12.5,7587,4528665.520372678,18,10,10,None,73
+2004-01-15,Thursday,Winter,Snowy,Cheese,Dairy,28.0,5942,3573424.8650444555,2,90,1,Seasonal Event,75
+2004-01-18,Sunday,Winter,Cold,Chicken,Meat,19.5,7675,4600130.906057865,20,5,5,Birthdays,75
+2004-01-08,Thursday,Winter,Cold,Milk,Dairy,5.2,7199,4275711.508316711,3,7,1,None,88
+2004-01-13,Tuesday,Winter,Snowy,Salmon,Other,36.8,5558,3351000.3042409555,7,3,1,Seasonal Event,70
+2004-01-08,Thursday,Winter,Cloudy,Milk,Dairy,5.2,7315,4389381.33832972,17,7,7,None,75
+2004-01-28,Wednesday,Winter,Cloudy,Apples,Fruits,4.4,7143,4291209.641689969,5,30,1,Corporate Event,81
+2004-01-15,Thursday,Winter,Cold,Salmon,Other,36.8,7426,4469501.665950012,21,3,3,None,75
+2004-01-16,Friday,Winter,Cloudy,Cheese,Dairy,28.0,7314,4373616.709794911,12,90,90,None,77
+2004-01-11,Sunday,Winter,Cold,Milk,Dairy,5.2,7530,4509341.381274313,21,7,7,Birthdays,79
+2004-01-11,Sunday,Winter,Cold,Lettuce,Vegetables,6.0,7923,4774712.294571072,15,5,5,None,74
+2004-01-18,Sunday,Winter,Cloudy,Cheese,Dairy,28.0,7517,4502699.827128052,4,90,1,Holiday Special,85
+2004-01-11,Sunday,Winter,Cold,Eggs,Dairy,7.2,7283,4340120.274178522,14,21,21,Holiday Special,71
+2004-01-15,Thursday,Winter,Cloudy,Pork,Other,25.6,7184,4312047.271277193,21,7,7,None,75
+2004-01-20,Tuesday,Winter,Snowy,Chicken,Meat,19.5,5871,3541005.1582745225,22,5,5,None,60
+2004-01-13,Tuesday,Winter,Cold,Milk,Dairy,5.2,7083,4242496.790421905,23,7,7,None,75
+2004-01-19,Monday,Winter,Cold,Cheese,Dairy,28.0,6890,4076010.882419387,7,90,1,Holiday Special,90
+2004-01-18,Sunday,Winter,Cloudy,Salmon,Other,36.8,7701,4584529.248145043,3,3,1,None,80
+2004-01-13,Tuesday,Winter,Cold,Lettuce,Vegetables,6.0,7241,4346045.45401994,4,5,1,Holiday Special,84
+2004-01-15,Thursday,Winter,Cold,Lettuce,Vegetables,6.0,7417,4411511.652579282,23,5,5,None,74
