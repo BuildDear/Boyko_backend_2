@@ -156,3 +156,15 @@ async def ask(query: QueryRequest):
         raise HTTPException(status_code=404, detail="BM25 index file not found.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred while processing the query: {str(e)}")
+
+
+'''
+Useful commands
+
+poetry remove lib
+poetry add lib
+poetry install
+poetry shell
+uvicorn edamonia_backend.main:app --reload 
+poetry run python data/datasets/generate_with_events.py
+'''
