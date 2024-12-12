@@ -166,5 +166,5 @@ poetry add lib
 poetry install
 poetry shell
 uvicorn edamonia_backend.main:app --reload 
-poetry run python data/datasets/generate_with_events.py
+poetry run python data/synthetic_data/generate_with_events.py
 '''
