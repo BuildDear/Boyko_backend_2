@@ -26,7 +26,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Для тестування дозволити всі джерела (замініть на конкретний домен у продакшені)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],  # Дозволити всі методи (GET, POST тощо)
     allow_headers=["*"],  # Дозволити всі заголовки
@@ -264,7 +264,7 @@ async def delete_file(file_name: str = Query(..., description="Name of the file 
             combined_df.to_csv(COMBINED_FILE_CSV_PATH, index=False)
 
             # Генеруємо нові ембеддінги
-            preprocess_and_generate_embeddings(COMBINED_FILE_CSV_PATH)
+            preprocess_and_generate_embeddings(COMBINED_FILE_CSV_PATH, EMBEDDINGS_FILE_PATH)
 
             # Оновлюємо BM25 і TF-IDF індекси
             reindex_bm25(COMBINED_FILE_CSV_PATH, BM25PUS_INDEX_FILE_PATH)
