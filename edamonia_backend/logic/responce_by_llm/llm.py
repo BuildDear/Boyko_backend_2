@@ -1,7 +1,12 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
+import os
+from dotenv import load_dotenv
 
-model_id = "BSC-LT/salamandra-2b-instruct"
+load_dotenv()
+print(os.getenv("HF_TOKEN"))
+
+model_id = "meta-llama/Llama-3.2-1B"
 
 
 model = AutoModelForCausalLM.from_pretrained(
@@ -18,39 +23,21 @@ tokenizer = AutoTokenizer.from_pretrained(
 
 tokenizer.chat_template = "default"
 
-
 def generate_assistant_response(question: str):
-    """
-    Генерує відповідь на будь-яке запитання, використовуючи модель.
-    """
-    prompt = (
-        f"You are a highly intelligent and helpful assistant. Answer the following question in a clear and concise manner:\n\n"
-        f"Question: {question}\n\n"
-        f"Answer:"
+
+    print(question, "question")
+    inputs = tokenizer.encode(question, return_tensors="pt").to(model.device)
+    outputs = model.generate(
+        input_ids=inputs,
+        max_new_tokens=128,
+        do_sample=True,
+        temperature=0.3,
+        top_p=0.7
     )
+    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-    messages = [
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": prompt}
-    ]
+    # Remove the prompt from the response
+    response = response.replace(question, "").strip()
 
-    text = tokenizer.apply_chat_template(
-        messages,
-        tokenize=False,
-        add_generation_prompt=True
-    )
-
-    model_inputs = tokenizer([text], return_tensors="pt").to(model.device)
-
-    # Генерація відповіді
-    generated_ids = model.generate(
-        **model_inputs,
-        max_new_tokens=64,  # Обмеження довжини відповіді
-        temperature=0.4,  # Контроль креативності
-        do_sample=True,  # Використання семплювання для варіативності
-    )
-
-    response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-
-    return response.strip()
+    return response
 

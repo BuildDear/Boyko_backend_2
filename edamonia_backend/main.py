@@ -3,11 +3,12 @@ from typing import List
 
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException, File, UploadFile, Query
 from pydantic import BaseModel
 import shutil
 
 from sentence_transformers import SentenceTransformer
+from fastapi.middleware.cors import CORSMiddleware
 
 from edamonia_backend.logic.emb_models.emd import preprocess_and_generate_embeddings, load_embeddings
 from edamonia_backend.logic.preprocessing.chunking import process_txt, save_chunks_to_csv, process_pdf, process_docx, \
@@ -23,13 +24,22 @@ from edamonia_backend.logic.responce_by_llm.llm import generate_assistant_respon
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Для тестування дозволити всі джерела (замініть на конкретний домен у продакшені)
+    allow_credentials=True,
+    allow_methods=["*"],  # Дозволити всі методи (GET, POST тощо)
+    allow_headers=["*"],  # Дозволити всі заголовки
+)
+
 model = SentenceTransformer("intfloat/e5-small")
 
 PRIMARY_CSV_DIR_PATH = "data/csv_files/primary_csv"
 CLEANED_CSV_DIR_PATH = "data/csv_files/cleaned_csv"
 BM25PUS_INDEX_FILE_PATH = "data/csv_files/bm25_index.pkl"
 TFIDF_INDEX_FILE_PATH = "data/csv_files/tfidf_index.pkl"
-COMBINED_FILE_CSV_PATH = "data/csv_files/combined_cleaned.csv"
+COMBINED_FILE_CSV_PATH = "data/csv_files/combined/combined_cleaned.csv"
+PRIMARY_COMBINED_FILE_CSV_PATH = "data/csv_files/combined/combined_primary.csv"
 EMBEDDINGS_FILE_PATH = "data/csv_files/combined_cleaned_embeddings.npy"
 
 
@@ -105,6 +115,15 @@ async def process_csv(files: List[UploadFile] = File(...)):
             else:
                 raise HTTPException(status_code=400, detail=f"Unsupported file type: {file_ext}")
 
+        # Об'єднання неочищених файлів
+        unprocessed_files = [f for f in os.listdir(PRIMARY_CSV_DIR_PATH) if f.endswith(".csv")]
+        unprocessed_dfs = [pd.read_csv(os.path.join(PRIMARY_CSV_DIR_PATH, uf)) for uf in unprocessed_files]
+
+        if unprocessed_dfs:
+            unprocessed_combined_df = pd.concat(unprocessed_dfs, ignore_index=True)
+            unprocessed_combined_df = ensure_unique_ids(unprocessed_combined_df, "news_id")
+            unprocessed_combined_df.to_csv(PRIMARY_COMBINED_FILE_CSV_PATH, index=False)
+
         # Об'єднання очищених файлів
         cleaned_files = [f for f in os.listdir(CLEANED_CSV_DIR_PATH) if f.endswith(".csv")]
         dfs = [pd.read_csv(os.path.join(CLEANED_CSV_DIR_PATH, cf)) for cf in cleaned_files]
@@ -114,10 +133,7 @@ async def process_csv(files: List[UploadFile] = File(...)):
             combined_df = ensure_unique_ids(combined_df, "news_id")
             combined_df.to_csv(COMBINED_FILE_CSV_PATH, index=False)
 
-            # Генерація ембеддінгів
-            preprocess_and_generate_embeddings(COMBINED_FILE_CSV_PATH)
-
-            # Створення BM25 індексу
+            preprocess_and_generate_embeddings(COMBINED_FILE_CSV_PATH, EMBEDDINGS_FILE_PATH)
             reindex_bm25(COMBINED_FILE_CSV_PATH, BM25PUS_INDEX_FILE_PATH)
             reindex_tfidf(COMBINED_FILE_CSV_PATH, TFIDF_INDEX_FILE_PATH)
 
@@ -161,6 +177,10 @@ async def ask(query: QueryModel):
         if df.empty or "content" not in df.columns:
             raise HTTPException(status_code=500, detail="Combined file is missing or invalid.")
 
+        df_primary = pd.read_csv(COMBINED_FILE_CSV_PATH)
+        if df.empty or "content" not in df.columns:
+            raise HTTPException(status_code=500, detail="Combined file is missing or invalid.")
+
         # Попередня обробка запиту
         cleaned_query = preprocess_text_embedded(query.query)
         tokenized_query = cleaned_query.split()
@@ -185,24 +205,20 @@ async def ask(query: QueryModel):
         # Об'єднання оцінок зваженим голосуванням
         combined_scores = weighted_voting(bm25_scores, tfidf_scores, similarity_scores, alpha=0.4, beta=0.3, gamma=0.3)
 
-        # Вибір топ-K документів
-        top_k = 3
+        top_k = 2
         top_k_indices = combined_scores.argsort()[-top_k:][::-1]
 
-        # Формування списку результатів
         ranked_documents = [
             {
-                "id": df.iloc[idx]["news_id"],
+                "id": df_primary.iloc[idx]["news_id"],
                 "score": float(combined_scores[idx]),
-                "content": df.iloc[idx]["content"]
+                "content": df_primary.iloc[idx]["content"]
             }
             for idx in top_k_indices
         ]
 
-        # Формування контексту
         context = ' '.join(doc['content'] for doc in ranked_documents)
 
-        # Генерація відповіді асистента
         assistant_response = generate_assistant_response(query.query + " " + context)
 
         return {
@@ -215,3 +231,78 @@ async def ask(query: QueryModel):
         raise HTTPException(status_code=404, detail="Required file not found.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred while processing the query: {str(e)}")
+
+
+@app.delete("/delete-file/", summary="Delete a dataset and update indices")
+async def delete_file(file_name: str = Query(..., description="Name of the file to delete")):
+    """
+    Видаляє файл із папок primary_csv і cleaned_csv, а також оновлює комбінований файл,
+    BM25, TF-IDF індекси та ембеддінги.
+    """
+    try:
+        # Перевіряємо наявність файлу в папці primary_csv
+        primary_file_path = os.path.join(PRIMARY_CSV_DIR_PATH, file_name)
+        if not os.path.exists(primary_file_path):
+            raise HTTPException(status_code=404, detail=f"File not found in primary_csv: {file_name}")
+
+        # Видаляємо файл із primary_csv
+        os.remove(primary_file_path)
+
+        # Перевіряємо наявність відповідного очищеного файлу в cleaned_csv
+        cleaned_file_name = f"{os.path.splitext(file_name)[0]}_cleaned.csv"
+        cleaned_file_path = os.path.join(CLEANED_CSV_DIR_PATH, cleaned_file_name)
+        if os.path.exists(cleaned_file_path):
+            os.remove(cleaned_file_path)
+
+        # Оновлюємо комбінований файл
+        cleaned_files = [f for f in os.listdir(CLEANED_CSV_DIR_PATH) if f.endswith(".csv")]
+        dfs = [pd.read_csv(os.path.join(CLEANED_CSV_DIR_PATH, cf)) for cf in cleaned_files]
+
+        if dfs:
+            combined_df = pd.concat(dfs, ignore_index=True)
+            combined_df = ensure_unique_ids(combined_df, "news_id")
+            combined_df.to_csv(COMBINED_FILE_CSV_PATH, index=False)
+
+            # Генеруємо нові ембеддінги
+            preprocess_and_generate_embeddings(COMBINED_FILE_CSV_PATH)
+
+            # Оновлюємо BM25 і TF-IDF індекси
+            reindex_bm25(COMBINED_FILE_CSV_PATH, BM25PUS_INDEX_FILE_PATH)
+            reindex_tfidf(COMBINED_FILE_CSV_PATH, TFIDF_INDEX_FILE_PATH)
+
+            return {"message": f"File {file_name} deleted successfully and indices updated."}
+        else:
+            # Якщо немає очищених файлів, видаляємо комбінований файл, індекси та ембеддінги
+            if os.path.exists(COMBINED_FILE_CSV_PATH):
+                os.remove(COMBINED_FILE_CSV_PATH)
+            if os.path.exists(BM25PUS_INDEX_FILE_PATH):
+                os.remove(BM25PUS_INDEX_FILE_PATH)
+            if os.path.exists(TFIDF_INDEX_FILE_PATH):
+                os.remove(TFIDF_INDEX_FILE_PATH)
+            if os.path.exists(EMBEDDINGS_FILE_PATH):
+                os.remove(EMBEDDINGS_FILE_PATH)
+
+            return {"message": f"File {file_name} deleted successfully. No more data to process."}
+
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Required file not found.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred while deleting the file: {str(e)}")
+
+
+@app.get("/datasets/", summary="Get all available datasets", response_description="List of available datasets")
+async def get_datasets():
+    """
+    Отримує список всіх доступних датасетів у папці PRIMARY_CSV_DIR_PATH.
+    """
+    try:
+        # Отримання списку файлів у папці
+        datasets = [f for f in os.listdir(PRIMARY_CSV_DIR_PATH) if os.path.isfile(os.path.join(PRIMARY_CSV_DIR_PATH, f))]
+
+        if not datasets:
+            return {"message": "No datasets found."}
+
+        return {"datasets": datasets}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred while retrieving datasets: {str(e)}")

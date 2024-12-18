@@ -18,10 +18,11 @@ login(hf_token)
 # Initialize the model
 model = SentenceTransformer("intfloat/e5-small")
 
-def preprocess_and_generate_embeddings(input_path):
+def preprocess_and_generate_embeddings(input_path, output_path):
     """
     Обробляє текстові дані з CSV файлу, генерує ембеддинги для кожного документу та зберігає їх.
     :param input_path: Шлях до вхідного CSV, що містить колонки 'content' та 'news_id'
+    :param output_path: Шлях до файлу, де будуть збережені ембеддинги
     :return: None
     """
     try:
@@ -37,9 +38,8 @@ def preprocess_and_generate_embeddings(input_path):
     corpus = documents_df['content'].dropna().tolist()
     processed_corpus = [preprocess_text_embedded(text) for text in tqdm(corpus, total=len(corpus))]
     embeddings = generate_embeddings(processed_corpus)
-    output_embeddings_path = input_path.replace(".csv", "_embeddings.npy")
-    save_embeddings(output_embeddings_path, embeddings)
-    print(f"Ембеддинги збережено у {output_embeddings_path}.")
+    save_embeddings(output_path, embeddings)
+    print(f"Ембеддинги збережено у {output_path}.")
 
 def generate_embeddings(texts):
     """
