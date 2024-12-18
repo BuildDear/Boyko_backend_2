@@ -1,5 +1,9 @@
 import os
 from typing import List
+import importlib
+from data.datasets.gen_test_data import generate_test_data
+from pydantic import Field, field_validator
+from datetime import datetime
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException, File, UploadFile
@@ -167,3 +171,75 @@ poetry shell
 uvicorn edamonia_backend.main:app --reload 
 poetry run python data/datasets/dataset.py
 '''
+
+class PredictionRequest(BaseModel):
+    date: str = Field(..., description="Date in format DD.MM.YYYY")
+    event: str = Field(..., description="Event type: None, Holiday, Daily event, Promotions")
+    model: str = Field(..., description="Model name: XGBoost, CatBoost, LightGBM, LinearRegression, DecisionTree")
+
+    @field_validator("date")
+    def validate_date_format(cls, value):
+        try:
+            datetime.strptime(value, "%d.%m.%Y")
+            return value
+        except ValueError:
+            raise ValueError("Invalid date format. Use DD.MM.YYYY")
+
+@app.post("/predict")
+async def run_prediction(request: PredictionRequest):
+    """
+    Ендпоінт для запуску прогнозування на основі обраних параметрів.
+    Параметри:
+      - date: дата у форматі DD.MM.YYYY
+      - event: None, Holiday, Daily event, Promotions
+      - model: XGBoost, CatBoost, LightGBM, LinearRegression, DecisionTree
+    """
+    # Маппінг event у числові значення
+    event_mapping = {
+        "None": 0,
+        "Holiday": 1,
+        "Daily event": 2,
+        "Promotions": 3
+    }
+
+    model_name_mapping = {
+        "xgboost": "XGBoost",
+        "catboost": "CatBoost",
+        "lightgbm": "LightGBM",
+        "linearregression": "LinearRegression",
+        "decisiontree": "DecisionTree"
+    }
+
+    # Перевірка коректності event
+    if request.event not in event_mapping:
+        raise HTTPException(status_code=400, detail=f"Invalid event type: {request.event}")
+
+    # Перевірка коректності моделі
+    model_name = request.model.lower()
+    if model_name not in model_name_mapping:
+        raise HTTPException(status_code=400, detail=f"Invalid model name: {request.model}")
+
+    # Конвертуємо дату у формат YYYY-MM-DD
+    parsed_date = datetime.strptime(request.date, "%d.%m.%Y").strftime("%Y-%m-%d")
+
+    model_class_name = model_name_mapping[model_name]
+    module_path = f"edamonia_backend.logic.train.prediction.{model_class_name}"
+
+    try:
+        # Генерація тестових даних на основі event
+        dataset_path = os.path.abspath("data/datasets")
+        test_data = generate_test_data(parsed_date, event_mapping[request.event])
+        test_data.to_csv(f"{dataset_path}/10_rows.csv", index=False)
+
+        # Імпортуємо файл predict.py динамічно
+        module = importlib.import_module(module_path)
+
+        # Викликаємо функцію train
+        module.train(event_mapping[request.event], dataset_path)
+
+        return {"message": f"Prediction successfully executed using {model_class_name}", "date": parsed_date, "event": request.event}
+
+    except ModuleNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Prediction module '{model_class_name}' not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
