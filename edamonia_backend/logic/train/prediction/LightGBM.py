@@ -146,3 +146,22 @@ def train(events, dataset_path):
     # Step 18: Display the updated custom test table
     print("\nТаблиця з прогнозами:")
     print(custom_test_data.head())
+
+    return {
+        "model_name": "LightGBM",
+        "parameters": {
+            "n_estimators": best_params['n_estimators'],
+            "num_leaves": best_params["num_leaves"],
+            "learning_rate": best_params["learning_rate"],
+            "max_depth": best_params["max_depth"]
+        },
+        "cv_metrics": {
+            "mse": best_score
+        },
+        "test_metrics": {
+            "mse": test_mse,
+            "rmse": test_rmse,
+            "mae": test_mae,
+            "r2": test_r2
+        }
+    }

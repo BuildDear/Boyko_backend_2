@@ -111,6 +111,24 @@ def train(events, dataset_path):
     custom_test_data.loc[:, 'Прогноз'] = custom_test_predictions
     custom_test_data.to_csv('edamonia_backend/logic/train/prediction_results/XGBoost_predict.csv', index=False, encoding='utf-8-sig')
 
-    # Step 18: Display the updated custom test table
-    print("\nТаблиця з прогнозами:")
-    print(custom_test_data.head())
+    # # Step 18: Display the updated custom test table
+    # print("\nТаблиця з прогнозами:")
+    # print(custom_test_data.head())
+
+    return {
+        "model_name": "XGBoost",
+        "parameters": {
+            "n_estimators": best_params["n_estimators"],
+            "learning_rate": best_params["learning_rate"],
+            "max_depth": best_params["max_depth"]
+        },
+        "cv_metrics": {
+            "mse": best_score
+        },
+        "test_metrics": {
+            "mse": test_mse,
+            "rmse": test_rmse,
+            "mae": test_mae,
+            "r2": test_r2
+        }
+    }

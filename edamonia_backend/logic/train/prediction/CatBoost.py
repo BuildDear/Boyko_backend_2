@@ -145,12 +145,19 @@ def train(events, dataset_path):
     # print(custom_test_data.head())
 
     return {
-        "iterations": best_params["iterations"],
-        "learning_rate": best_params["learning_rate"],
-        "depth": best_params["depth"],
-        "cv_mse": best_score,
-        "test_mse": test_mse,
-        "test_rmse": test_rmse,
-        "test_mae": test_mae,
-        "test_r2": test_r2
+        "model_name": "CatBoost",
+        "parameters": {
+            "iterations": best_params["iterations"],
+            "learning_rate": best_params["learning_rate"],
+            "depth": best_params["depth"]
+        },
+        "cv_metrics": {
+            "mse": best_score
+        },
+        "test_metrics": {
+            "mse": test_mse,
+            "rmse": test_rmse,
+            "mae": test_mae,
+            "r2": test_r2
+        }
     }

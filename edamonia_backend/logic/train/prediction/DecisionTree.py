@@ -121,6 +121,24 @@ def train(events, dataset_path):
     # Step 17: Save the updated table with predictions
     custom_test_data.to_csv('edamonia_backend/logic/train/prediction_results/DecisionTree_predict.csv', index=False, encoding='utf-8-sig')
 
-    # Step 18: Display the updated custom test table
-    print("\nТаблиця з прогнозами:")
-    print(custom_test_data.head())
+    # # Step 18: Display the updated custom test table
+    # print("\nТаблиця з прогнозами:")
+    # print(custom_test_data.head())
+
+    return {
+        "model_name": "DecisionTree",
+        "parameters": {
+            "max_depth": best_params["max_depth"],
+            "min_samples_split": best_params["min_samples_split"],
+            "min_samples_leaf": best_params["min_samples_leaf"]
+        },
+        "cv_metrics": {
+            "mse": best_score
+        },
+        "test_metrics": {
+            "mse": test_mse,
+            "rmse": test_rmse,
+            "mae": test_mae,
+            "r2": test_r2
+        }
+    }

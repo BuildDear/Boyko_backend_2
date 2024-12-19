@@ -199,7 +199,7 @@ async def run_prediction(request: PredictionRequest):
         "None": 0,
         "Holiday": 1,
         "Daily event": 2,
-        "Promotions": 3
+        "Promotion": 3
     }
 
     model_name_mapping = {
@@ -240,21 +240,12 @@ async def run_prediction(request: PredictionRequest):
         # Викликаємо функцію train та отримуємо результати
         results = module.train(event_mapping[request.event], dataset_path)
         return {
-            "message": f"Prediction successfully executed using {model_class_name}",
+            "message": f"Prediction successfully executed using {results['model_name']}",
             "date": parsed_date,
             "event": request.event,
-            "model_details": {
-                "iterations": results.get("iterations"),
-                "learning_rate": results.get("learning_rate"),
-                "depth": results.get("depth"),
-                "cross_validation_mse": results.get("cv_mse")
-            },
-            "test_metrics": {
-                "mse": results.get("test_mse"),
-                "rmse": results.get("test_rmse"),
-                "mae": results.get("test_mae"),
-                "r2": results.get("test_r2")
-            }
+            "parameters": results.get("parameters"),  # None для LinearRegression
+            "cv_metrics": results.get("cv_metrics"),  # None для LinearRegression
+            "test_metrics": results.get("test_metrics"),
         }
 
     except ModuleNotFoundError:

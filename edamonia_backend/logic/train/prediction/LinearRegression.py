@@ -65,6 +65,18 @@ def train(events, dataset_path):
     # Step 16: Save the updated table with predictions
     custom_test_data.to_csv('edamonia_backend/logic/train/prediction_results/LinearRegression_predict.csv', index=False, encoding='utf-8-sig')
 
-    # Step 17: Display the updated custom test table
-    print("\nТаблиця з прогнозами:")
-    print(custom_test_data.head())
+    # # Step 17: Display the updated custom test table
+    # print("\nТаблиця з прогнозами:")
+    # print(custom_test_data.head())
+
+    return {
+        "model_name": "LinearRegression",
+        "parameters": None,  # Немає параметрів
+        "cv_metrics": None,  # Немає крос-валідації
+        "test_metrics": {
+            "mse": test_mse,
+            "rmse": test_rmse,
+            "mae": test_mae,
+            "r2": test_r2
+        }
+    }
