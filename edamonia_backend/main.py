@@ -4,6 +4,7 @@ import importlib
 from data.datasets.gen_test_data import generate_test_data
 from pydantic import Field, field_validator
 from datetime import datetime
+from fastapi.responses import FileResponse
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException, File, UploadFile
@@ -252,3 +253,34 @@ async def run_prediction(request: PredictionRequest):
         raise HTTPException(status_code=404, detail=f"Prediction module '{model_class_name}' not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
+
+
+@app.get("/download-result-table")
+async def download_table(model: str):
+    """
+    Ендпоінт для завантаження таблиці результатів прогнозування.
+    Параметри:
+      - model: Назва моделі (CatBoost, XGBoost, DecisionTree, LightGBM, LinearRegression)
+    """
+    model_mapping = {
+        "catboost": "CatBoost_predict.csv",
+        "xgboost": "XGBoost_predict.csv",
+        "decisiontree": "DecisionTree_predict.csv",
+        "lightgbm": "LightGBM_predict.csv",
+        "linearregression": "LinearRegression_predict.csv"
+    }
+
+    # Перевірка коректності моделі
+    model_name = model.lower()
+    if model_name not in model_mapping:
+        raise HTTPException(status_code=400, detail=f"Invalid model name: {model}")
+
+    # Формуємо шлях до файлу
+    file_path = os.path.join("edamonia_backend", "logic", "train", "prediction_results", model_mapping[model_name])
+
+    # Перевірка наявності файлу
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
+
+    # Повертаємо файл
+    return FileResponse(path=file_path, filename=model_mapping[model_name], media_type="application/csv")
