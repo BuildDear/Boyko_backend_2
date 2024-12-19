@@ -35,6 +35,7 @@ app.add_middleware(
 model = SentenceTransformer("intfloat/e5-small")
 
 PRIMARY_CSV_DIR_PATH = "data/csv_files/primary_csv"
+PRIMARY_DIR_PATH = "data/primary"
 CLEANED_CSV_DIR_PATH = "data/csv_files/cleaned_csv"
 BM25PUS_INDEX_FILE_PATH = "data/csv_files/bm25_index.pkl"
 TFIDF_INDEX_FILE_PATH = "data/csv_files/tfidf_index.pkl"
@@ -77,40 +78,50 @@ async def process_csv(files: List[UploadFile] = File(...)):
                 raise HTTPException(status_code=400, detail="No file name found in uploaded file")
 
             file_name, file_ext = os.path.splitext(file.filename)
-            input_file_path = os.path.join(PRIMARY_CSV_DIR_PATH, file.filename)
+            input_file_path = os.path.join(PRIMARY_DIR_PATH, file.filename)
 
             with open(input_file_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
 
             if file_ext.lower() == ".csv":
-                cleaned_file_name = f"{file_name}_cleaned.csv"
-                output_file_path = os.path.join(CLEANED_CSV_DIR_PATH, cleaned_file_name)
-                process_data_embedded(input_file_path, output_file_path)
+                chunks = process_txt(input_file_path)
+                output_file_primary_csv_path = os.path.join(PRIMARY_CSV_DIR_PATH, f"{file_name}_chunks.csv")
+                output_file_cleaned_csv_path = os.path.join(CLEANED_CSV_DIR_PATH, f"{file_name}_chunks.csv")
+                save_chunks_to_csv(chunks, output_file_primary_csv_path)
                 processed_files.append(file.filename)
+                process_data_embedded(output_file_primary_csv_path, output_file_cleaned_csv_path)
 
             elif file_ext.lower() == ".txt":
                 chunks = process_txt(input_file_path)
-                output_file_path = os.path.join(CLEANED_CSV_DIR_PATH, f"{file_name}_chunks.csv")
-                save_chunks_to_csv(chunks, output_file_path)
+                output_file_primary_csv_path = os.path.join(PRIMARY_CSV_DIR_PATH, f"{file_name}_chunks.csv")
+                output_file_cleaned_csv_path = os.path.join(CLEANED_CSV_DIR_PATH, f"{file_name}_chunks.csv")
+                save_chunks_to_csv(chunks, output_file_primary_csv_path)
                 processed_files.append(file.filename)
+                process_data_embedded(output_file_primary_csv_path, output_file_cleaned_csv_path)
 
             elif file_ext.lower() == ".pdf":
                 chunks = process_pdf(input_file_path)
-                output_file_path = os.path.join(CLEANED_CSV_DIR_PATH, f"{file_name}_chunks.csv")
-                save_chunks_to_csv(chunks, output_file_path)
+                output_file_primary_csv_path = os.path.join(PRIMARY_CSV_DIR_PATH, f"{file_name}_chunks.csv")
+                output_file_cleaned_csv_path = os.path.join(CLEANED_CSV_DIR_PATH, f"{file_name}_chunks.csv")
+                save_chunks_to_csv(chunks, output_file_primary_csv_path)
                 processed_files.append(file.filename)
+                process_data_embedded(output_file_primary_csv_path, output_file_cleaned_csv_path)
 
             elif file_ext.lower() == ".docx":
                 chunks = process_docx(input_file_path)
-                output_file_path = os.path.join(CLEANED_CSV_DIR_PATH, f"{file_name}_chunks.csv")
-                save_chunks_to_csv(chunks, output_file_path)
+                output_file_primary_csv_path = os.path.join(PRIMARY_CSV_DIR_PATH, f"{file_name}_chunks.csv")
+                output_file_cleaned_csv_path = os.path.join(CLEANED_CSV_DIR_PATH, f"{file_name}_chunks.csv")
+                save_chunks_to_csv(chunks, output_file_primary_csv_path)
                 processed_files.append(file.filename)
+                process_data_embedded(output_file_primary_csv_path, output_file_cleaned_csv_path)
 
             elif file_ext.lower() == ".json":
                 chunks = process_json(input_file_path)
-                output_file_path = os.path.join(CLEANED_CSV_DIR_PATH, f"{file_name}_chunks.csv")
-                save_chunks_to_csv(chunks, output_file_path)
+                output_file_primary_csv_path = os.path.join(PRIMARY_CSV_DIR_PATH, f"{file_name}_chunks.csv")
+                output_file_cleaned_csv_path = os.path.join(CLEANED_CSV_DIR_PATH, f"{file_name}_chunks.csv")
+                save_chunks_to_csv(chunks, output_file_primary_csv_path)
                 processed_files.append(file.filename)
+                process_data_embedded(output_file_primary_csv_path, output_file_cleaned_csv_path)
 
             else:
                 raise HTTPException(status_code=400, detail=f"Unsupported file type: {file_ext}")
@@ -121,7 +132,7 @@ async def process_csv(files: List[UploadFile] = File(...)):
 
         if unprocessed_dfs:
             unprocessed_combined_df = pd.concat(unprocessed_dfs, ignore_index=True)
-            unprocessed_combined_df = ensure_unique_ids(unprocessed_combined_df, "news_id")
+            unprocessed_combined_df = ensure_unique_ids(unprocessed_combined_df, "chunk_id")
             unprocessed_combined_df.to_csv(PRIMARY_COMBINED_FILE_CSV_PATH, index=False)
 
         # Об'єднання очищених файлів
@@ -130,7 +141,7 @@ async def process_csv(files: List[UploadFile] = File(...)):
 
         if dfs:
             combined_df = pd.concat(dfs, ignore_index=True)
-            combined_df = ensure_unique_ids(combined_df, "news_id")
+            combined_df = ensure_unique_ids(combined_df, "chunk_id")
             combined_df.to_csv(COMBINED_FILE_CSV_PATH, index=False)
 
             preprocess_and_generate_embeddings(COMBINED_FILE_CSV_PATH, EMBEDDINGS_FILE_PATH)
@@ -149,88 +160,118 @@ async def process_csv(files: List[UploadFile] = File(...)):
 @app.post("/ask-bot/")
 async def ask(query: QueryModel):
     try:
-        # Перевірка наявності необхідних файлів
+        print("Checking required files...")
         if not os.path.exists(BM25PUS_INDEX_FILE_PATH):
             raise HTTPException(status_code=404, detail="BM25 index file not found.")
+        print("BM25 index file exists.")
         if not os.path.exists(TFIDF_INDEX_FILE_PATH):
             raise HTTPException(status_code=404, detail="TF-IDF index file not found.")
+        print("TF-IDF index file exists.")
         if not os.path.exists(EMBEDDINGS_FILE_PATH):
             raise HTTPException(status_code=404, detail="Embeddings file not found.")
+        print("Embeddings file exists.")
         if not os.path.exists(COMBINED_FILE_CSV_PATH):
             raise HTTPException(status_code=404, detail="Combined CSV file not found.")
+        print("Combined CSV file exists.")
 
-        # Завантаження BM25 індексу
+        print("Loading BM25 index...")
         bm25 = load_bm25_index(BM25PUS_INDEX_FILE_PATH)
+        print("BM25 index loaded.")
         if not bm25 or not hasattr(bm25, "get_scores"):
             raise HTTPException(status_code=500, detail="BM25 index is invalid or corrupted.")
+        print("BM25 index is valid.")
 
-        # Завантаження TF-IDF індексу
+        print("Loading TF-IDF index...")
         vectorizer, tfidf_matrix = load_tfidf_index(TFIDF_INDEX_FILE_PATH)
+        print("TF-IDF index loaded.")
 
-        # Завантаження ембеддингів
+        print("Loading embeddings...")
         document_embeddings = load_embeddings(EMBEDDINGS_FILE_PATH)
+        print("Embeddings loaded.")
         if document_embeddings is None:
             raise HTTPException(status_code=500, detail="Embeddings are not available.")
+        print("Embeddings are valid.")
 
-        # Завантаження даних документів
+        print("Loading combined CSV data...")
         df = pd.read_csv(COMBINED_FILE_CSV_PATH)
+        print("Combined CSV loaded.")
         if df.empty or "content" not in df.columns:
             raise HTTPException(status_code=500, detail="Combined file is missing or invalid.")
+        print("Combined CSV file is valid.")
 
+        print("Loading primary combined CSV data...")
         df_primary = pd.read_csv(PRIMARY_COMBINED_FILE_CSV_PATH)
-        if df.empty or "content" not in df.columns:
-            raise HTTPException(status_code=500, detail="Combined file is missing or invalid.")
+        print("Primary combined CSV loaded.")
+        if df_primary.empty or "content" not in df_primary.columns:
+            raise HTTPException(status_code=500, detail="Primary combined file is missing or invalid.")
+        print("Primary combined CSV file is valid.")
 
-        # Попередня обробка запиту
+        print("Preprocessing query...")
         cleaned_query = preprocess_text_embedded(query.query)
+        print(f"Cleaned query: {cleaned_query}")
         tokenized_query = cleaned_query.split()
+        print(f"Tokenized query: {tokenized_query}")
 
         if not tokenized_query:
             raise HTTPException(status_code=400, detail="Query is empty or invalid after preprocessing.")
 
-        # Отримання оцінок з BM25
+        print("Calculating BM25 scores...")
         bm25_scores = bm25.get_scores(tokenized_query)
+        print(f"BM25 scores: {bm25_scores}")
 
-        # Отримання оцінок з TF-IDF
+        print("Calculating TF-IDF scores...")
         tfidf_scores = get_tfidf_scores(query.query, vectorizer, tfidf_matrix)
+        print(f"TF-IDF scores: {tfidf_scores}")
 
-        # Генерація ембеддингу для запиту
+        print("Generating query embedding...")
         query_embedding = model.encode([query.query], show_progress_bar=False)[0]
+        print(f"Query embedding: {query_embedding}")
 
-        # Обчислення косинусної схожості
+        print("Calculating similarity scores...")
         similarity_scores = np.dot(document_embeddings, query_embedding) / (
             np.linalg.norm(document_embeddings, axis=1) * np.linalg.norm(query_embedding)
         )
+        print(f"Similarity scores: {similarity_scores}")
 
-        # Об'єднання оцінок зваженим голосуванням
+        print("Combining scores with weighted voting...")
         combined_scores = weighted_voting(bm25_scores, tfidf_scores, similarity_scores, alpha=0.4, beta=0.3, gamma=0.3)
+        print(f"Combined scores: {combined_scores}")
 
+        print("Selecting top documents...")
         top_k = 3
         top_k_indices = combined_scores.argsort()[-top_k:][::-1]
+        print(f"Top indices: {top_k_indices}")
 
         ranked_documents = [
             {
-                "id": df_primary.iloc[idx]["news_id"],
+                "id": df_primary.iloc[idx]["chunk_id"],
                 "score": float(combined_scores[idx]),
                 "content": df_primary.iloc[idx]["content"]
             }
             for idx in top_k_indices
         ]
+        print(f"Ranked documents: {ranked_documents}")
 
+        print("Generating response...")
         context = ' '.join(doc['content'] for doc in ranked_documents)
-
+        print(f"Context for response: {context}")
         assistant_response = generate_response(question=query.query, context=context)
+        print(f"Assistant response: {assistant_response}")
 
+        print("Returning results...")
         return {
             "query": query.query,
             "ranked_documents": ranked_documents,
             "assistant_response": assistant_response
         }
 
-    except FileNotFoundError:
+    except FileNotFoundError as fnfe:
+        print(f"FileNotFoundError: {fnfe}")
         raise HTTPException(status_code=404, detail="Required file not found.")
     except Exception as e:
+        print(f"Exception: {e}")
         raise HTTPException(status_code=500, detail=f"An error occurred while processing the query: {str(e)}")
+
 
 
 @app.delete("/delete-file/", summary="Delete a dataset and update indices")
