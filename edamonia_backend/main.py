@@ -237,7 +237,25 @@ async def run_prediction(request: PredictionRequest):
         # Викликаємо функцію train
         module.train(event_mapping[request.event], dataset_path)
 
-        return {"message": f"Prediction successfully executed using {model_class_name}", "date": parsed_date, "event": request.event}
+        # Викликаємо функцію train та отримуємо результати
+        results = module.train(event_mapping[request.event], dataset_path)
+        return {
+            "message": f"Prediction successfully executed using {model_class_name}",
+            "date": parsed_date,
+            "event": request.event,
+            "model_details": {
+                "iterations": results.get("iterations"),
+                "learning_rate": results.get("learning_rate"),
+                "depth": results.get("depth"),
+                "cross_validation_mse": results.get("cv_mse")
+            },
+            "test_metrics": {
+                "mse": results.get("test_mse"),
+                "rmse": results.get("test_rmse"),
+                "mae": results.get("test_mae"),
+                "r2": results.get("test_r2")
+            }
+        }
 
     except ModuleNotFoundError:
         raise HTTPException(status_code=404, detail=f"Prediction module '{model_class_name}' not found")

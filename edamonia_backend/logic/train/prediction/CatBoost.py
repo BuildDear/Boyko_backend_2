@@ -94,8 +94,8 @@ def train(events, dataset_path):
     table.to_csv('edamonia_backend/logic/train/prediction_results/CatBoost_results.csv', index=False, encoding='utf-8-sig')
 
     # Step 12: Display table
-    print("\nТаблиця результатів:")
-    print(table)
+    # print("\nТаблиця результатів:")
+    # print(table)
 
     # Step 13: Train and evaluate the best model
     best_model = grid_search.best_estimator_
@@ -141,5 +141,16 @@ def train(events, dataset_path):
     custom_test_data.to_csv('edamonia_backend/logic/train/prediction_results/CatBoost_predict.csv', index=False, encoding='utf-8-sig')
 
     # Step 18: Display the updated custom test table
-    print("\nТаблиця з прогнозами:")
-    print(custom_test_data.head())
+    # print("\nТаблиця з прогнозами:")
+    # print(custom_test_data.head())
+
+    return {
+        "iterations": best_params["iterations"],
+        "learning_rate": best_params["learning_rate"],
+        "depth": best_params["depth"],
+        "cv_mse": best_score,
+        "test_mse": test_mse,
+        "test_rmse": test_rmse,
+        "test_mae": test_mae,
+        "test_r2": test_r2
+    }
