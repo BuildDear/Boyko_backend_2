@@ -20,7 +20,7 @@ from edamonia_backend.logic.ranking_by_frequency.bm25lus import (
     ensure_unique_ids
 )
 from edamonia_backend.logic.ranking_by_frequency.tf_idf import load_tfidf_index, get_tfidf_scores, reindex_tfidf
-from edamonia_backend.logic.responce_by_llm.llm import generate_assistant_response
+from edamonia_backend.logic.responce_by_llm.llm import generate_response
 
 app = FastAPI()
 
@@ -177,7 +177,7 @@ async def ask(query: QueryModel):
         if df.empty or "content" not in df.columns:
             raise HTTPException(status_code=500, detail="Combined file is missing or invalid.")
 
-        df_primary = pd.read_csv(COMBINED_FILE_CSV_PATH)
+        df_primary = pd.read_csv(PRIMARY_COMBINED_FILE_CSV_PATH)
         if df.empty or "content" not in df.columns:
             raise HTTPException(status_code=500, detail="Combined file is missing or invalid.")
 
@@ -205,7 +205,7 @@ async def ask(query: QueryModel):
         # Об'єднання оцінок зваженим голосуванням
         combined_scores = weighted_voting(bm25_scores, tfidf_scores, similarity_scores, alpha=0.4, beta=0.3, gamma=0.3)
 
-        top_k = 2
+        top_k = 3
         top_k_indices = combined_scores.argsort()[-top_k:][::-1]
 
         ranked_documents = [
@@ -219,7 +219,7 @@ async def ask(query: QueryModel):
 
         context = ' '.join(doc['content'] for doc in ranked_documents)
 
-        assistant_response = generate_assistant_response(query.query + " " + context)
+        assistant_response = generate_response(question=query.query, context=context)
 
         return {
             "query": query.query,

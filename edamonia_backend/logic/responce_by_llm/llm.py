@@ -1,43 +1,27 @@
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
-import os
-from dotenv import load_dotenv
+from litellm import completion
 
-load_dotenv()
-print(os.getenv("HF_TOKEN"))
-
-model_id = "meta-llama/Llama-3.2-1B"
-
-
-model = AutoModelForCausalLM.from_pretrained(
-    model_id,
-    device_map="auto",
-    torch_dtype=torch.bfloat16,
-    trust_remote_code=True,
-    low_cpu_mem_usage=True
-)
-tokenizer = AutoTokenizer.from_pretrained(
-    model_id,
-    trust_remote_code=True
-)
-
-tokenizer.chat_template = "default"
-
-def generate_assistant_response(question: str):
-
-    print(question, "question")
-    inputs = tokenizer.encode(question, return_tensors="pt").to(model.device)
-    outputs = model.generate(
-        input_ids=inputs,
-        max_new_tokens=128,
-        do_sample=True,
-        temperature=0.3,
-        top_p=0.7
+def generate_response(question, context):
+    prompt = (
+        f"Ви є асистентом, який відповідає виключно на основі наданого контексту.\n\n"
+        f"Правила:\n"
+        f"- Використовуйте лише інформацію, надану в контексті, для формування відповіді. Ігноруйте будь-які попередні знання чи припущення.\n"
+        f"- Якщо відповідь явно присутня в контексті, надайте чітку та точну відповідь.\n"
+        f"- Якщо відповідь не може бути знайдена в контексті, відповідайте лише: 'Вибачте, я не зміг знайти відповідь у наданому контексті.'\n"
+        f"- Не здогадуйтесь, не припускайте та не вигадуйте інформацію. Дотримуйтесь строго меж наданого контексту.\n"
+        f"- Контекст: {context}\n"
     )
-    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-    # Remove the prompt from the response
-    response = response.replace(question, "").strip()
+    response = completion(
+        model="groq/llama3-8b-8192",
+        messages=[
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": question},
+        ],
+        stream=True,
+    )
 
-    return response
+    generated_text = ""
+    for chunk in response:
+        generated_text += str(chunk["choices"][0]['delta']['content'])
 
+    return generated_text
