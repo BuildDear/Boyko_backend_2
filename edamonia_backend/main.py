@@ -5,6 +5,7 @@ from data.datasets.gen_test_data import generate_test_data
 from pydantic import Field, field_validator
 from datetime import datetime
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException, File, UploadFile
@@ -21,6 +22,15 @@ from edamonia_backend.logic.ranking_by_frequency.tf_idf import load_tfidf_index,
 from edamonia_backend.logic.responce_by_llm.llm import generate_assistant_response
 
 app = FastAPI()
+
+# Налаштування CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:63342"],  # Краще вказати конкретний URL, наприклад: ["http://localhost:63342"]
+    allow_credentials=True,
+    allow_methods=["*"],  # Дозволити всі методи (GET, POST, PUT, DELETE тощо)
+    allow_headers=["*"],  # Дозволити всі заголовки
+)
 
 PRIMARY_CSV_DIR_PATH = "data/csv_files/primary_csv"
 CLEANED_CSV_DIR_PATH = "data/csv_files/cleaned_csv"
@@ -235,10 +245,6 @@ async def run_prediction(request: PredictionRequest):
         # Імпортуємо файл predict.py динамічно
         module = importlib.import_module(module_path)
 
-        # Викликаємо функцію train
-        module.train(event_mapping[request.event], dataset_path)
-
-        # Викликаємо функцію train та отримуємо результати
         results = module.train(event_mapping[request.event], dataset_path)
         return {
             "message": f"Prediction successfully executed using {results['model_name']}",
