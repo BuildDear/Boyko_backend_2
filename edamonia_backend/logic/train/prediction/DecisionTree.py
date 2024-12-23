@@ -1,4 +1,4 @@
-from sklearn.model_selection import GridSearchCV, cross_val_score, train_test_split
+from sklearn.model_selection import GridSearchCV, TimeSeriesSplit, cross_val_score
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import r2_score, make_scorer, mean_squared_error, mean_absolute_error
 import pandas as pd
@@ -9,11 +9,11 @@ import os
 
 def train(events, dataset_path):
     if events == 0:
-        # Step 1: Load the dataset
-        file_path = os.path.join(dataset_path, "data_without_events.csv")
+        file_path = os.path.join(dataset_path, "dataset.csv")
+        test_path = os.path.join(dataset_path, "test_dataset.csv")
 
-        # Preprocessing data
-        X_scaled, y, kf = preprocess_data(file_path, 1)
+        X_scaled, y = preprocess_data(file_path, 0)
+        X_test, y_test = preprocess_data(test_path, 0)
 
         # Step 3: Define parameter grid for GridSearchCV
         param_grid = {
@@ -22,30 +22,38 @@ def train(events, dataset_path):
             'min_samples_leaf': [14, 15, 16, 17]
         }
     else:
-        file_path = os.path.join(dataset_path, "data_with_events.csv")
+        file_path = os.path.join(dataset_path, "dataset_event.csv")
+        test_path = os.path.join(dataset_path, "test_dataset_event.csv")
 
-        # Preprocessing data
-        X_scaled, y, kf = preprocess_data(file_path, 1)
-
+        X_scaled, y = preprocess_data(file_path, 1)
+        X_test, y_test = preprocess_data(test_path, 1)
         # Step 3: Define parameter grid for GridSearchCV
         param_grid = {
             'max_depth': [15, 16],  # Глибина дерева
             'min_samples_split': [15, 16, 17, 18, 19],  # Мінімальна кількість зразків для розбиття вузла
             'min_samples_leaf': [14, 15, 16, 17, 18]  # Мінімальна кількість зразків у листі
         }
+    # Step: Додавання шуму до тренувальних даних
+    noise_level = 0.1  # Налаштуйте рівень шуму за потреби
+    np.random.seed(42)  # Для відтворюваності
+    noise = np.random.normal(0, noise_level, X_scaled.shape)
+    X_train = X_scaled + noise
+
+    # Використання TimeSeriesSplit
+    tscv = TimeSeriesSplit(n_splits=5)
 
     tree_model = DecisionTreeRegressor(random_state=42)
     grid_search = GridSearchCV(
         estimator=tree_model,
         param_grid=param_grid,
         scoring='neg_mean_squared_error',
-        cv=kf,
+        cv=tscv,
         n_jobs=-1,
         verbose=1
     )
 
     # Step 4: Fit the GridSearchCV
-    grid_search.fit(X_scaled, y)
+    grid_search.fit(X_train, y)
 
     # Step 5: Convert results to DataFrame and sort by mean_test_score
     results_df = pd.DataFrame(grid_search.cv_results_)
@@ -70,7 +78,7 @@ def train(events, dataset_path):
             min_samples_leaf=row['param_min_samples_leaf'],
             random_state=42
         )
-        r2 = cross_val_score(model, X_scaled, y, cv=kf, scoring=make_scorer(r2_score)).mean()
+        r2 = cross_val_score(model, X_train, y, cv=tscv, scoring=make_scorer(r2_score)).mean()
         r2_scores.append(r2)
 
     # Step 9: Add R² column to the table
@@ -84,15 +92,16 @@ def train(events, dataset_path):
     # Step 7: Get the best model's parameters
     best_params = grid_search.best_params_
     best_score = -grid_search.best_score_
+    best_r2 = cross_val_score(best_model, X_train, y, cv=tscv, scoring='r2').mean()
     # Step 8: Print the best model parameters
     print("\nПараметри найкращої моделі DecisionTree:")
     print(f"Максимальна глибина дерева: {best_params['max_depth']}")
     print(f"Мінімальна кількість зразків для розбиття: {best_params['min_samples_split']}")
     print(f"Мінімальна кількість зразків у листі: {best_params['min_samples_leaf']}")
     print(f"Середнє MSE (крос-валідація): {best_score:.4f}")
+    print(f"R² найкращої моделі: {best_r2:.4f}")
 
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
-    best_model.fit(X_train, y_train)
+    best_model.fit(X_train, y)
 
     y_test_pred = best_model.predict(X_test)
 

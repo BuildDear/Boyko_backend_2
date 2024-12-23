@@ -1,5 +1,5 @@
 import importlib
-from data.datasets.gen_test_data import generate_test_data
+from data.datasets.gen_test_dataset import generate_10_data
 import os
 
 # Введення даних
@@ -9,13 +9,13 @@ date = input("Введіть дату (у форматі YYYY-MM-DD): ")
 events = int(input("Чи є Events? (0 для ні, 1 для Holiday, 2 для Daily event, 3 для Promotion): ").strip())
 
 if events == 0:
-    test_data = generate_test_data(date, 0)
+    test_data = generate_10_data(date, 0)
 elif events == 1:
-    test_data = generate_test_data(date, 1)
+    test_data = generate_10_data(date, 1)
 elif events == 2:
-    test_data = generate_test_data(date, 2)
+    test_data = generate_10_data(date, 2)
 else:
-    test_data = generate_test_data(date, 3)
+    test_data = generate_10_data(date, 3)
 
 dataset_path = os.path.abspath("data/datasets")
 test_data.to_csv(f"{dataset_path}/10_rows.csv", index=False)
@@ -55,3 +55,7 @@ if model_name in model_name_mapping:
         print(f"Помилка під час виконання моделі: {e}")
 else:
     print("Помилка: введена некоректна назва моделі.")
+
+
+'''створювати нові функції для тестового датасету щоб він відрізнявся від тренованого датасету
+додати вивід метрик для 10_data'''

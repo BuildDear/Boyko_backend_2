@@ -11,19 +11,24 @@ weather_conditions = ['Sunny', 'Rainy', 'Snowy', 'Cloudy', 'Stormy', 'Hot', 'Col
 
 
 # Generate synthetic data
-def generate_synthetic_data(n_rows):
+def generate_synthetic_data(is_event, n_rows):
     data = []
 
     # Date range for purchases
     current_date = datetime(2004, 1, 1)
-    end_date = datetime(2024, 12, 31)
+    end_date = datetime(2023, 12, 31)
     # Track the last purchase date for each product to ensure weekly purchases
     product_purchase_tracker = {product: current_date for product in products}
 
     for _ in range(n_rows):
+
+        holiday_name = None
         product = random.choice(products)
 
-        current_date = generate_sequential_date(current_date, product_purchase_tracker, product)
+        if is_event == 0:
+            current_date = generate_sequential_date(current_date, product_purchase_tracker, product)
+        else:
+            current_date, holiday_name = generate_date_with_event(current_date, product_purchase_tracker, product)
         year = current_date.year
 
         # Ensure the date doesn't exceed the end_date
@@ -33,7 +38,15 @@ def generate_synthetic_data(n_rows):
         season = determine_season(current_date)
         weather = random.choice(seasonal_weather[season])
         day_of_week = days_of_week[current_date.weekday()]
-        event = None
+
+        if is_event == 0:
+            event = None
+        else:
+            if holiday_name is None:
+                event = get_event()
+            else:
+                event = holiday_name
+
         num_customers = generate_num_customers(current_date, season, weather)
         stocks = get_stock(num_customers, event)
         days_until_next_purchase = next_purchase(stocks, product)
@@ -54,12 +67,16 @@ def generate_synthetic_data(n_rows):
     df = pd.DataFrame(data, columns=columns)
     return df
 
+is_event = 1
 
-# Generate synthetic data
-synthetic_data = generate_synthetic_data(100000)
+if is_event == 1:
+    synthetic_data = generate_synthetic_data(is_event, 100000)
+    synthetic_data.to_csv('data/datasets/dataset_event.csv', index=False)
+else:
+    synthetic_data = generate_synthetic_data(is_event, 100000)
+    synthetic_data.to_csv('data/datasets/dataset.csv', index=False)
 
-# To display the first 5 rows of the DataFrame
 print(synthetic_data.head())
 
-# Or, if you'd like to export it to a CSV file
-synthetic_data.to_csv('synthetic_data.csv', index=False)
+print("\nТипи даних кожного атрибуту:")
+print(synthetic_data.dtypes)

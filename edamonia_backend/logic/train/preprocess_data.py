@@ -1,6 +1,5 @@
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn.model_selection import KFold
 
 # Step 1: Combine Rare Categories
 def group_events(event):
@@ -72,10 +71,8 @@ def preprocess_data(file_path, is_event):
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Set up cross-validation
-    kf = KFold(n_splits=5, shuffle=True, random_state=42)  # 5-fold cross-validation
 
-    return X_scaled, y, kf
+    return X_scaled, y
 
 
 def preprocess_test_data(file_path, is_event):

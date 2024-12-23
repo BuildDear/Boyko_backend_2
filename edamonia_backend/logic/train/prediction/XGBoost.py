@@ -1,20 +1,19 @@
-from sklearn.model_selection import GridSearchCV, cross_val_score
+from sklearn.model_selection import GridSearchCV, TimeSeriesSplit, cross_val_score
 import pandas as pd
 import numpy as np
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, make_scorer
 from xgboost import XGBRegressor
-from sklearn.model_selection import train_test_split
 from edamonia_backend.logic.train.preprocess_data import preprocess_data, preprocess_test_data
 import os
 
 def train(events, dataset_path):
 
     if events == 0:
-        # Step 1: Load the dataset
-        file_path = os.path.join(dataset_path, "data_without_events.csv")
+        file_path = os.path.join(dataset_path, "dataset.csv")
+        test_path = os.path.join(dataset_path, "test_dataset.csv")
 
-        # Preprocessing data
-        X_scaled, y, kf = preprocess_data(file_path, 1)
+        X_scaled, y = preprocess_data(file_path, 0)
+        X_test, y_test = preprocess_data(test_path, 0)
 
         param_grid = {
             'n_estimators': [50, 60, 100],  # Кількість дерев
@@ -22,10 +21,11 @@ def train(events, dataset_path):
             'max_depth': [7, 8, 9]  # Глибина дерева
         }
     else:
-        file_path = os.path.join(dataset_path, "data_with_events.csv")
+        file_path = os.path.join(dataset_path, "dataset_event.csv")
+        test_path = os.path.join(dataset_path, "test_dataset_event.csv")
 
-        # Preprocessing data
-        X_scaled, y, kf = preprocess_data(file_path, 1)
+        X_scaled, y = preprocess_data(file_path, 1)
+        X_test, y_test = preprocess_data(test_path, 1)
 
         param_grid = {
             'n_estimators': [50, 60, 100],  # Number of trees
@@ -33,9 +33,15 @@ def train(events, dataset_path):
             'max_depth': [7, 8, 9]  # Tree depth
         }
 
+    noise_level = 0.1  # Налаштуйте рівень шуму за потреби
+    np.random.seed(42)  # Для відтворюваності
+    noise = np.random.normal(0, noise_level, X_scaled.shape)
+    X_train = X_scaled + noise
+
+    tscv = TimeSeriesSplit(n_splits=5)
     xgb_model = XGBRegressor(objective='reg:squarederror', random_state=42)
     # print(hasattr(xgb_model, "__sklearn_tags__"))  # Це має повернути False
-    grid_search = GridSearchCV(estimator=xgb_model, param_grid=param_grid, scoring='neg_mean_squared_error', cv=kf, n_jobs=-1, verbose=1)
+    grid_search = GridSearchCV(estimator=xgb_model, param_grid=param_grid, scoring='neg_mean_squared_error', cv=tscv, n_jobs=-1, verbose=1)
 
     # Step 11: Fit the GridSearchCV
     grid_search.fit(X_scaled, y)
@@ -62,7 +68,7 @@ def train(events, dataset_path):
             objective='reg:squarederror',
             random_state=42
         )
-        r2 = cross_val_score(model, X_scaled, y, cv=kf, scoring=make_scorer(r2_score)).mean()
+        r2 = cross_val_score(model, X_scaled, y, cv=tscv, scoring=make_scorer(r2_score)).mean()
         r2_scores.append(r2)
 
     table['R² (cross-validation)'] = r2_scores
@@ -75,6 +81,7 @@ def train(events, dataset_path):
     # Step 7: Get the best model's parameters
     best_params = grid_search.best_params_
     best_score = -grid_search.best_score_
+    best_r2 = cross_val_score(best_model, X_train, y, cv=tscv, scoring='r2').mean()
 
     # Step 8: Print the best model parameters
     print("\nПараметри найкращої моделі XGBoost:")
@@ -82,9 +89,9 @@ def train(events, dataset_path):
     print(f"Темп навчання: {best_params['learning_rate']}")
     print(f"Максимальна глибина дерева: {best_params['max_depth']}")
     print(f"Середнє MSE (крос-валідація): {best_score:.4f}")
+    print(f"R² найкращої моделі: {best_r2:.4f}")
 
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
-    best_model.fit(X_train, y_train)
+    best_model.fit(X_train, y)
 
     y_test_pred = best_model.predict(X_test)
 
@@ -105,7 +112,6 @@ def train(events, dataset_path):
 
     X_custom, y_custom = preprocess_test_data(custom_test_file, events)
 
-    # Step 15: Make predictions on the custom test table
     custom_test_predictions = best_model.predict(X_custom)
 
     custom_test_data.loc[:, 'Прогноз'] = custom_test_predictions

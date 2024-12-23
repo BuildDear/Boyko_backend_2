@@ -1,4 +1,4 @@
-from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
+from sklearn.model_selection import cross_val_score, GridSearchCV, TimeSeriesSplit
 from catboost import CatBoostRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, make_scorer
 import pandas as pd
@@ -9,39 +9,47 @@ import os
 
 def train(events, dataset_path):
     if events != 0:
-        # Step 1: Load the dataset
-        file_path = os.path.join(dataset_path, "data_without_events.csv")
 
-        X_scaled, y, kf = preprocess_data(file_path, 1)
+        file_path = os.path.join(dataset_path, "dataset_event.csv")
+        test_path = os.path.join(dataset_path, "test_dataset_event.csv")
 
-        # Step 2: Define parameter grid for GridSearchCV
-        #param_grid = {
-        #    'iterations': [350, 400, 450],  # Кількість ітерацій
-        #    'learning_rate': [0.04, 0.05],  # Темп навчання
-        #    'depth': [6, 7]  # Глибина дерева
-        #}
+        X_scaled, y = preprocess_data(file_path, 1)
+        X_test, y_test = preprocess_data(test_path, 1)
         param_grid = {
-            'iterations': [400],  # Кількість ітерацій
-            'learning_rate': [0.04],  # Темп навчання
-            'depth': [6]  # Глибина дерева
+            'iterations': [400, 450, 500],  # Кількість ітерацій
+            'learning_rate': [0.04, 0.05, 0.06],  # Темп навчання
+            'depth': [6, 7, 8],  # Глибина дерева
+            # 'l2_leaf_reg': [3, 5, 7]
         }
     else:
-        file_path = os.path.join(dataset_path, "data_without_events.csv")
+        file_path = os.path.join(dataset_path, "dataset.csv")
+        test_path = os.path.join(dataset_path, "test_dataset.csv")
 
-        # Preprocess data
-        X_scaled, y, kf = preprocess_data(file_path, 0)
+        X_scaled, y = preprocess_data(file_path, 0)
+        X_test, y_test = preprocess_data(test_path, 0)
+
         param_grid = {
-            'iterations': [400],  # Кількість ітерацій
-            'learning_rate': [0.04],  # Темп навчання
-            'depth': [7]  # Глибина дерева
+            'iterations': [300, 400, 500],  # Кількість ітерацій
+            'learning_rate': [0.03, 0.04, 0.05],  # Темп навчання
+            'depth': [5, 6, 7],  # Глибина дерева
+            # 'l2_leaf_reg': [3, 5, 7]
         }
-        # Step 2: Define parameter grid for GridSearchCV
-        # param_grid = {
-        #     'iterations': [300, 400, 500],  # Кількість ітерацій
-        #     'learning_rate': [0.03, 0.04, 0.05],  # Темп навчання
-        #     'depth': [5, 6, 7]  # Глибина дерева
-        # }
 
+    # Compute and plot the correlation matrix
+    # correlation_matrix = pd.DataFrame(X_scaled, columns=X.columns).corr()
+    # plt.figure(figsize=(12, 8))
+    # sns.heatmap(correlation_matrix, annot=True, fmt='.2f', cmap='coolwarm')
+    # plt.title('Correlation Matrix After Preprocessing')
+    # plt.show()
+
+    # Step: Додавання шуму до тренувальних даних
+    noise_level = 0.1  # Налаштуйте рівень шуму за потреби
+    np.random.seed(42)  # Для відтворюваності
+    noise = np.random.normal(0, noise_level, X_scaled.shape)
+    X_train = X_scaled + noise
+
+    # Використання TimeSeriesSplit
+    tscv = TimeSeriesSplit(n_splits=5)
     catboost_model = CatBoostRegressor(verbose=0, random_state=42)
 
     # Step 4: Set up GridSearchCV
@@ -49,13 +57,13 @@ def train(events, dataset_path):
         estimator=catboost_model,
         param_grid=param_grid,
         scoring='neg_mean_squared_error',  # Оптимізація за MSE
-        cv=kf,
+        cv=tscv,
         n_jobs=-1,
         verbose=1
     )
 
     # Step 5: Fit GridSearchCV
-    grid_search.fit(X_scaled, y)
+    grid_search.fit(X_train, y)
 
     # Step 6: Convert results to DataFrame and sort by mean_test_score
     results_df = pd.DataFrame(grid_search.cv_results_)
@@ -84,7 +92,7 @@ def train(events, dataset_path):
             verbose=0,
             random_state=42
         )
-        r2 = cross_val_score(model, X_scaled, y, cv=kf, scoring=make_scorer(r2_score)).mean()
+        r2 = cross_val_score(model, X_train, y, cv=tscv, scoring=make_scorer(r2_score)).mean()
         r2_scores.append(r2)
 
     # Step 10: Add R² column to the table
@@ -93,25 +101,23 @@ def train(events, dataset_path):
     # Step 11: Save table to CSV
     table.to_csv('edamonia_backend/logic/train/prediction_results/CatBoost_results.csv', index=False, encoding='utf-8-sig')
 
-    # Step 12: Display table
-    # print("\nТаблиця результатів:")
-    # print(table)
-
     # Step 13: Train and evaluate the best model
     best_model = grid_search.best_estimator_
 
     # Step 7: Get the best model's parameters
     best_params = grid_search.best_params_
     best_score = -grid_search.best_score_
+    best_r2 = cross_val_score(best_model, X_train, y, cv=tscv, scoring='r2').mean()
+
     # Step 8: Print the best model parameters
     print("\nПараметри найкращої моделі CatBoost:")
     print(f"Кількість ітерацій: {best_params['iterations']}")
     print(f"Темп навчання: {best_params['learning_rate']}")
     print(f"Глибина дерева: {best_params['depth']}")
     print(f"Середнє MSE (крос-валідація): {best_score:.4f}")
+    print(f"R² найкращої моделі: {best_r2:.4f}")
 
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
-    best_model.fit(X_train, y_train)
+    best_model.fit(X_train, y)
 
     y_test_pred = best_model.predict(X_test)
 

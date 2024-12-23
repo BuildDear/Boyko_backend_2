@@ -1,7 +1,7 @@
 import os
 from typing import List
 import importlib
-from data.datasets.gen_test_data import generate_test_data
+from data.datasets.gen_test_dataset import generate_10_data
 from pydantic import Field, field_validator
 from datetime import datetime
 from fastapi.responses import FileResponse
@@ -180,7 +180,7 @@ poetry add lib
 poetry install
 poetry shell
 uvicorn edamonia_backend.main:app --reload 
-poetry run python data/datasets/dataset.py
+poetry run python data/datasets/gen_dataset.py
 '''
 
 class PredictionRequest(BaseModel):
@@ -239,7 +239,7 @@ async def run_prediction(request: PredictionRequest):
     try:
         # Генерація тестових даних на основі event
         dataset_path = os.path.abspath("data/datasets")
-        test_data = generate_test_data(parsed_date, event_mapping[request.event])
+        test_data = generate_10_data(parsed_date, event_mapping[request.event])
         test_data.to_csv(f"{dataset_path}/10_rows.csv", index=False)
 
         # Імпортуємо файл predict.py динамічно
