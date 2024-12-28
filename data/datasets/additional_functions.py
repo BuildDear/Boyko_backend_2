@@ -203,18 +203,19 @@ def get_event():
 
 
 def get_stock(num_customers, event):
-    stock_left = random.randint(5, 40)  # Small stock if more visitors
-    if num_customers > 6500 or event is not None:
-        stock_left = random.randint(1, 20)  # Large stock if few visitors
-
+    stock_left = random.randint(5, 20)  # Small stock if more visitors
     event_grouped = group_events(event)
 
     if event_grouped == "Holiday":
-        stock_left = random.randint(5, 20)
+        stock_left = random.randint(5, 15)
     elif event_grouped == "Promotion":
-        stock_left = random.randint(20, 50)
+        stock_left = random.randint(10, 20)
     elif event_grouped == "Daily event":
-        stock_left = random.randint(5, 10)
+        stock_left = random.randint(5, 8)
+
+    if num_customers > 6500 or event is not None:
+        stock_left -= random.randint(1, 5)  # Large stock if few visitors
+
 
     return stock_left
 
@@ -296,7 +297,7 @@ def generate_num_customers(current_date, season, weather):
 
 # New logic to determine purchase quantity
 def determine_quantity(num_customers, stocks, season, product, event):
-    base_quantity = 30  # Base quantity for all products
+    base_quantity = 25  # Base quantity for all products
 
     # Increase quantity if many customers
     if num_customers > 6500:
@@ -304,7 +305,7 @@ def determine_quantity(num_customers, stocks, season, product, event):
 
     # Increase quantity if low stock
     if stocks < 10:
-        base_quantity += random.randint(10, 15)
+        base_quantity += random.randint(5, 10)
 
     # Seasonal adjustments
     if season == 'Summer':
@@ -334,12 +335,10 @@ def determine_quantity(num_customers, stocks, season, product, event):
     event_grouped = group_events(event)
 
     if event_grouped == "Holiday":
-        base_quantity += random.randint(7, 15)
+        base_quantity += random.randint(7, 11)
     elif event_grouped == "Promotion":
-        base_quantity += random.randint(10, 20)
+        base_quantity += random.randint(10, 15)
     elif event_grouped == "Daily event":
-        base_quantity += random.randint(2, 10)
+        base_quantity += random.randint(2, 7)
 
     return base_quantity
-
-######### Functions for test dataset ###############################

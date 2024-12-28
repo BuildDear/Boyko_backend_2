@@ -134,13 +134,13 @@ def generate_test_data(is_event, n_rows=10000):
     df = pd.DataFrame(data, columns=columns)
     return df
 
-#is_event = 1
+# is_event = 0
 #
-#if is_event == 1:
-#    synthetic_data = generate_test_data(is_event, 100000)
-#    synthetic_data.to_csv('data/datasets/test_dataset_event.csv', index=False)
-#else:
-#    synthetic_data = generate_test_data(is_event, 100000)
-#    synthetic_data.to_csv('data/datasets/test_dataset.csv', index=False)
+# if is_event == 1:
+#     synthetic_data = generate_test_data(is_event, 100000)
+#     synthetic_data.to_csv('data/datasets/test_dataset_event.csv', index=False)
+# else:
+#     synthetic_data = generate_test_data(is_event, 100000)
+#     synthetic_data.to_csv('data/datasets/test_dataset.csv', index=False)
 #
-#print(synthetic_data.head())
+# print(synthetic_data.head())

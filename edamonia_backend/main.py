@@ -290,3 +290,34 @@ async def download_table(model: str):
 
     # Повертаємо файл
     return FileResponse(path=file_path, filename=model_mapping[model_name], media_type="application/csv")
+
+
+@app.get("/download-test-results")
+async def download_table(model: str):
+    """
+    Ендпоінт для завантаження таблиці результатів прогнозування.
+    Параметри:
+      - model: Назва моделі (CatBoost, XGBoost, DecisionTree, LightGBM, LinearRegression)
+    """
+    model_mapping = {
+        "catboost": "CatBoost_test_predictions.csv",
+        "xgboost": "XGBoost_test_predictions.csv",
+        "decisiontree": "DecisionTree_test_predictions.csv",
+        "lightgbm": "LightGBM_test_predictions.csv",
+        "linearregression": "LinearRegression_test_predictions.csv"
+    }
+
+    # Перевірка коректності моделі
+    model_name = model.lower()
+    if model_name not in model_mapping:
+        raise HTTPException(status_code=400, detail=f"Invalid model name: {model}")
+
+    # Формуємо шлях до файлу
+    file_path = os.path.join("edamonia_backend", "logic", "train", "prediction_results", model_mapping[model_name])
+
+    # Перевірка наявності файлу
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
+
+    # Повертаємо файл
+    return FileResponse(path=file_path, filename=model_mapping[model_name], media_type="application/csv")

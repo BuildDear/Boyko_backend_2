@@ -1,5 +1,4 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import numpy as np
@@ -9,24 +8,25 @@ import os
 
 def train(events, dataset_path):
     if events == 0:
-        # Step 1: Load the dataset
-        file_path = os.path.join(dataset_path, "data_without_events.csv")
+        file_path = os.path.join(dataset_path, "dataset.csv")
+        test_path = os.path.join(dataset_path, "test_dataset.csv")
 
-        # Preprocessing data
-        X_scaled, y, kf = preprocess_data(file_path, 1)
+        X_scaled, y = preprocess_data(file_path, 0)
+        X_test, y_test = preprocess_data(test_path, 0)
+
     else:
-        file_path = os.path.join(dataset_path, "data_with_events.csv")
+        file_path = os.path.join(dataset_path, "dataset_event.csv")
+        test_path = os.path.join(dataset_path, "test_dataset_event.csv")
 
-        # Preprocessing data
-        X_scaled, y, kf = preprocess_data(file_path, 1)
+        X_scaled, y = preprocess_data(file_path, 1)
+        X_test, y_test = preprocess_data(test_path, 1)
+    raw_test = pd.read_csv(test_path)
+
 
     # Step 2: Define the Linear Regression model
     lin_reg_model = LinearRegression()
 
-
-    # Step 7: Train the model on the entire training set for final evaluation
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
-    lin_reg_model.fit(X_train, y_train)
+    lin_reg_model.fit(X_scaled, y)
 
     # Step 8: Make predictions and evaluate on the test set
     y_test_pred = lin_reg_model.predict(X_test)
@@ -60,14 +60,17 @@ def train(events, dataset_path):
     custom_test_predictions = lin_reg_model.predict(X_custom)
 
     # Step 15: Add predictions to the custom test table
-    custom_test_data.loc[:, 'Прогноз'] = custom_test_predictions
+    custom_test_data.loc[:, 'Predict_Quantity'] = custom_test_predictions
+    custom_test_data = custom_test_data.drop('Purchase_Quantity', axis=1)
 
     # Step 16: Save the updated table with predictions
     custom_test_data.to_csv('edamonia_backend/logic/train/prediction_results/LinearRegression_predict.csv', index=False, encoding='utf-8-sig')
 
-    # # Step 17: Display the updated custom test table
-    # print("\nТаблиця з прогнозами:")
-    # print(custom_test_data.head())
+    raw_test['Predicted_Purchase_Quantity'] = y_test_pred
+
+    # Збереження нової таблиці до CSV
+    raw_test.to_csv('edamonia_backend/logic/train/prediction_results/LinearRegression_test_predictions.csv', index=False, encoding='utf-8-sig')
+
 
     return {
         "model_name": "LinearRegression",

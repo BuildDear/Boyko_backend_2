@@ -16,9 +16,9 @@ def train(events, dataset_path):
         X_scaled, y = preprocess_data(file_path, 1)
         X_test, y_test = preprocess_data(test_path, 1)
         param_grid = {
-            'iterations': [400, 450, 500],  # Кількість ітерацій
-            'learning_rate': [0.04, 0.05, 0.06],  # Темп навчання
-            'depth': [6, 7, 8],  # Глибина дерева
+            'iterations': [500, 510, 520],  # Кількість ітерацій
+            'learning_rate': [0.04, 0.05],  # Темп навчання
+            'depth': [7, 8],  # Глибина дерева
             # 'l2_leaf_reg': [3, 5, 7]
         }
     else:
@@ -30,17 +30,11 @@ def train(events, dataset_path):
 
         param_grid = {
             'iterations': [300, 400, 500],  # Кількість ітерацій
-            'learning_rate': [0.03, 0.04, 0.05],  # Темп навчання
-            'depth': [5, 6, 7],  # Глибина дерева
+            'learning_rate': [0.04, 0.05, 0.06],  # Темп навчання
+            'depth': [7, 8],  # Глибина дерева
             # 'l2_leaf_reg': [3, 5, 7]
         }
-
-    # Compute and plot the correlation matrix
-    # correlation_matrix = pd.DataFrame(X_scaled, columns=X.columns).corr()
-    # plt.figure(figsize=(12, 8))
-    # sns.heatmap(correlation_matrix, annot=True, fmt='.2f', cmap='coolwarm')
-    # plt.title('Correlation Matrix After Preprocessing')
-    # plt.show()
+    raw_test = pd.read_csv(test_path)
 
     # Step: Додавання шуму до тренувальних даних
     noise_level = 0.1  # Налаштуйте рівень шуму за потреби
@@ -136,19 +130,21 @@ def train(events, dataset_path):
     custom_test_file = f"{dataset_path}/10_rows.csv"
     custom_test_data = pd.read_csv(custom_test_file)
 
-    X_custom, y_custom = preprocess_test_data(custom_test_file, events)
+    X_custom, _ = preprocess_test_data(custom_test_file, events)
 
     # Step 15: Make predictions on the custom test table
     custom_test_predictions = best_model.predict(X_custom)
 
     # Step 16: Add predictions to the custom test table
-    custom_test_data['Прогноз'] = custom_test_predictions
+    custom_test_data['Predict_Quantity'] = custom_test_predictions
+    custom_test_data = custom_test_data.drop('Purchase_Quantity', axis=1)
     # Step 17: Save the updated table with predictions
     custom_test_data.to_csv('edamonia_backend/logic/train/prediction_results/CatBoost_predict.csv', index=False, encoding='utf-8-sig')
 
-    # Step 18: Display the updated custom test table
-    # print("\nТаблиця з прогнозами:")
-    # print(custom_test_data.head())
+    raw_test['Predicted_Purchase_Quantity'] = y_test_pred
+
+    # Збереження нової таблиці до CSV
+    raw_test.to_csv('edamonia_backend/logic/train/prediction_results/CatBoost_test_predictions.csv', index=False, encoding='utf-8-sig')
 
     return {
         "model_name": "CatBoost",

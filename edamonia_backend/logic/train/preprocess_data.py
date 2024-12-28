@@ -1,5 +1,7 @@
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Step 1: Combine Rare Categories
 def group_events(event):
@@ -70,7 +72,6 @@ def preprocess_data(file_path, is_event):
     # Standardize the numerical features
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-
 
     return X_scaled, y
 

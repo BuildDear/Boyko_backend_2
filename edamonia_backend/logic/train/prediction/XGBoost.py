@@ -32,6 +32,7 @@ def train(events, dataset_path):
             'learning_rate': [0.1, 0.15, 0.2],  # Learning rate
             'max_depth': [7, 8, 9]  # Tree depth
         }
+    raw_test = pd.read_csv(test_path)
 
     noise_level = 0.1  # Налаштуйте рівень шуму за потреби
     np.random.seed(42)  # Для відтворюваності
@@ -114,12 +115,14 @@ def train(events, dataset_path):
 
     custom_test_predictions = best_model.predict(X_custom)
 
-    custom_test_data.loc[:, 'Прогноз'] = custom_test_predictions
+    custom_test_data.loc[:, 'Predict_Quantity'] = custom_test_predictions
+    custom_test_data = custom_test_data.drop('Purchase_Quantity', axis=1)
     custom_test_data.to_csv('edamonia_backend/logic/train/prediction_results/XGBoost_predict.csv', index=False, encoding='utf-8-sig')
 
-    # # Step 18: Display the updated custom test table
-    # print("\nТаблиця з прогнозами:")
-    # print(custom_test_data.head())
+    raw_test['Predicted_Purchase_Quantity'] = y_test_pred
+
+    # Збереження нової таблиці до CSV
+    raw_test.to_csv('edamonia_backend/logic/train/prediction_results/XGBoost_test_predictions.csv', index=False, encoding='utf-8-sig')
 
     return {
         "model_name": "XGBoost",

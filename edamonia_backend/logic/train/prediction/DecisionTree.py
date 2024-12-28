@@ -33,6 +33,8 @@ def train(events, dataset_path):
             'min_samples_split': [15, 16, 17, 18, 19],  # Мінімальна кількість зразків для розбиття вузла
             'min_samples_leaf': [14, 15, 16, 17, 18]  # Мінімальна кількість зразків у листі
         }
+    raw_test = pd.read_csv(test_path)
+
     # Step: Додавання шуму до тренувальних даних
     noise_level = 0.1  # Налаштуйте рівень шуму за потреби
     np.random.seed(42)  # Для відтворюваності
@@ -126,13 +128,16 @@ def train(events, dataset_path):
     custom_test_predictions = best_model.predict(X_custom)
 
     # Step 16: Add predictions to the custom test table
-    custom_test_data['Прогноз'] = custom_test_predictions
+    custom_test_data['Predict_Quantity'] = custom_test_predictions
+    custom_test_data = custom_test_data.drop('Purchase_Quantity', axis=1)
     # Step 17: Save the updated table with predictions
     custom_test_data.to_csv('edamonia_backend/logic/train/prediction_results/DecisionTree_predict.csv', index=False, encoding='utf-8-sig')
 
-    # # Step 18: Display the updated custom test table
-    # print("\nТаблиця з прогнозами:")
-    # print(custom_test_data.head())
+    raw_test['Predicted_Purchase_Quantity'] = y_test_pred
+
+    # Збереження нової таблиці до CSV
+    raw_test.to_csv('edamonia_backend/logic/train/prediction_results/DecisionTree_test_predictions.csv', index=False,
+                    encoding='utf-8-sig')
 
     return {
         "model_name": "DecisionTree",

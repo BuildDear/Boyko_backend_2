@@ -36,6 +36,7 @@ def train(events, dataset_path):
             'max_depth': [3, 5, 7],  # Глибина дерева
             'num_leaves': [15, 31, 50]  # Кількість листків
         }
+    raw_test = pd.read_csv(test_path)
 
     noise_level = 0.1  # Налаштуйте рівень шуму за потреби
     np.random.seed(42)  # Для відтворюваності
@@ -56,7 +57,7 @@ def train(events, dataset_path):
         param_grid=param_grid,
         scoring='neg_mean_squared_error',  # Оптимізація за MSE
         cv=tscv,
-        n_jobs=-1,
+        n_jobs=12,
         verbose=1
     )
 
@@ -144,13 +145,16 @@ def train(events, dataset_path):
     custom_test_predictions = best_model.predict(X_custom)
 
     # Step 16: Add predictions to the custom test table
-    custom_test_data['Прогноз'] = custom_test_predictions
+    custom_test_data['Predict_Quantity'] = custom_test_predictions
+    custom_test_data = custom_test_data.drop('Purchase_Quantity', axis=1)
     # Step 17: Save the updated table with predictions
     custom_test_data.to_csv('edamonia_backend/logic/train/prediction_results/LightGBM_predict.csv', index=False, encoding='utf-8-sig')
 
-    # Step 18: Display the updated custom test table
-    print("\nТаблиця з прогнозами:")
-    print(custom_test_data.head())
+    raw_test['Predicted_Purchase_Quantity'] = y_test_pred
+
+    # Збереження нової таблиці до CSV
+    raw_test.to_csv('edamonia_backend/logic/train/prediction_results/LightGBM_test_predictions.csv', index=False, encoding='utf-8-sig')
+
 
     return {
         "model_name": "LightGBM",
