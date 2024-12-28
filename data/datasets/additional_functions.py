@@ -203,19 +203,18 @@ def get_event():
 
 
 def get_stock(num_customers, event):
-    stock_left = random.randint(5, 20)  # Small stock if more visitors
+    stock_left = random.randint(5, 30)  # Small stock if more visitors
     event_grouped = group_events(event)
 
     if event_grouped == "Holiday":
-        stock_left = random.randint(5, 15)
-    elif event_grouped == "Promotion":
         stock_left = random.randint(10, 20)
+    elif event_grouped == "Promotion":
+        stock_left = random.randint(15, 25)
     elif event_grouped == "Daily event":
-        stock_left = random.randint(5, 8)
+        stock_left = random.randint(10, 15)
 
-    if num_customers > 6500 or event is not None:
+    if num_customers > 6000:
         stock_left -= random.randint(1, 5)  # Large stock if few visitors
-
 
     return stock_left
 
@@ -224,7 +223,9 @@ def get_average_check(num_customers):
     checks = []
     for _ in range(num_customers):
         checks.append(random.uniform(200, 1000))
-    return sum(checks)
+    sales = sum(checks)
+    sales += sales * random.uniform(0.01, 0.05)
+    return sales
 
 
 def determine_season(date):
@@ -270,7 +271,7 @@ def generate_num_customers(current_date, season, weather):
 
         # Adjust for season
         if season == 'Summer':
-            base_customers += random.randint(10, 100)  # More visitors in summer
+            base_customers += random.randint(10, 50)  # More visitors in summer
         elif season == 'Winter':
             base_customers -= random.randint(10, 50)  # Fewer visitors in winter
 
@@ -278,7 +279,7 @@ def generate_num_customers(current_date, season, weather):
         if weather == 'Sunny':
             base_customers += random.randint(10, 50)  # More visitors in sunny weather
         elif weather in ['Rainy', 'Snowy', 'Stormy']:
-            base_customers -= random.randint(10, 100)  # Fewer visitors in bad weather
+            base_customers -= random.randint(10, 50)  # Fewer visitors in bad weather
 
         # Adjust for weekends
         day_of_week = current_date.weekday()
@@ -300,12 +301,15 @@ def determine_quantity(num_customers, stocks, season, product, event):
     base_quantity = 25  # Base quantity for all products
 
     # Increase quantity if many customers
-    if num_customers > 6500:
+    if num_customers > 6000:
         base_quantity += random.randint(10, 15)  # More customers, larger purchase
 
     # Increase quantity if low stock
     if stocks < 10:
-        base_quantity += random.randint(5, 10)
+        base_quantity += random.randint(10, 15)
+
+    if stocks > 10:
+        base_quantity -= random.randint(10, 15)
 
     # Seasonal adjustments
     if season == 'Summer':
@@ -335,10 +339,10 @@ def determine_quantity(num_customers, stocks, season, product, event):
     event_grouped = group_events(event)
 
     if event_grouped == "Holiday":
-        base_quantity += random.randint(7, 11)
+        base_quantity += random.randint(7, 15)
     elif event_grouped == "Promotion":
-        base_quantity += random.randint(10, 15)
+        base_quantity += random.randint(10, 20)
     elif event_grouped == "Daily event":
-        base_quantity += random.randint(2, 7)
+        base_quantity += random.randint(3, 10)
 
     return base_quantity
