@@ -9,8 +9,12 @@ from docx import Document
 
 def chunk_text_with_langchain(text):
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=50
+        chunk_size=500,
+        chunk_overlap=50,
+        separators=[
+            "\n\n",
+            "\n",
+        ],
     )
     return text_splitter.split_text(text)
 

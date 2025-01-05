@@ -42,6 +42,7 @@ TFIDF_INDEX_FILE_PATH = "data/csv_files/tfidf_index.pkl"
 COMBINED_FILE_CSV_PATH = "data/csv_files/combined/combined_cleaned.csv"
 PRIMARY_COMBINED_FILE_CSV_PATH = "data/csv_files/combined/combined_primary.csv"
 EMBEDDINGS_FILE_PATH = "data/csv_files/combined_cleaned_embeddings.npy"
+EMBEDDINGS_TSV_FILE_PATH = "data/csv_files/combined_cleaned_embeddings.tsv"
 
 
 os.makedirs(PRIMARY_CSV_DIR_PATH, exist_ok=True)
@@ -144,7 +145,7 @@ async def process_csv(files: List[UploadFile] = File(...)):
             combined_df = ensure_unique_ids(combined_df, "chunk_id")
             combined_df.to_csv(COMBINED_FILE_CSV_PATH, index=False)
 
-            preprocess_and_generate_embeddings(COMBINED_FILE_CSV_PATH, EMBEDDINGS_FILE_PATH)
+            preprocess_and_generate_embeddings(COMBINED_FILE_CSV_PATH, EMBEDDINGS_FILE_PATH, EMBEDDINGS_TSV_FILE_PATH)
             reindex_bm25(COMBINED_FILE_CSV_PATH, BM25PUS_INDEX_FILE_PATH)
             reindex_tfidf(COMBINED_FILE_CSV_PATH, TFIDF_INDEX_FILE_PATH)
 
@@ -238,13 +239,13 @@ async def ask(query: QueryModel):
         print(f"Combined scores: {combined_scores}")
 
         print("Selecting top documents...")
-        top_k = 3
+        top_k = 5
         top_k_indices = combined_scores.argsort()[-top_k:][::-1]
         print(f"Top indices: {top_k_indices}")
 
         ranked_documents = [
             {
-                "id": df_primary.iloc[idx]["chunk_id"],
+                "id": int(df_primary.iloc[idx]["chunk_id"]),
                 "score": float(combined_scores[idx]),
                 "content": df_primary.iloc[idx]["content"]
             }

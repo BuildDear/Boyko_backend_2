@@ -18,7 +18,7 @@ login(hf_token)
 # Initialize the model
 model = SentenceTransformer("intfloat/e5-small")
 
-def preprocess_and_generate_embeddings(input_path, output_path):
+def preprocess_and_generate_embeddings(input_path, output_path_npy, output_path_tsv):
     """
     Обробляє текстові дані з CSV файлу, генерує ембеддинги для кожного документу та зберігає їх.
     :param input_path: Шлях до вхідного CSV, що містить колонки 'content' та 'news_id'
@@ -36,10 +36,11 @@ def preprocess_and_generate_embeddings(input_path, output_path):
         raise ValueError("Missing 'content' column in input CSV.")
 
     corpus = documents_df['content'].dropna().tolist()
+    chunk_ids = documents_df['chunk_id'].dropna().tolist()
     processed_corpus = [preprocess_text_embedded(text) for text in tqdm(corpus, total=len(corpus))]
     embeddings = generate_embeddings(processed_corpus)
-    save_embeddings(output_path, embeddings)
-    print(f"Ембеддинги збережено у {output_path}.")
+    save_embeddings(output_path_npy, embeddings)
+    save_embeddings_tsv(output_path_tsv, chunk_ids, embeddings)
 
 def generate_embeddings(texts):
     """
@@ -57,6 +58,20 @@ def save_embeddings(output_path, embeddings):
     :param embeddings: ембеддинги для збереження
     """
     np.save(output_path, embeddings)
+
+def save_embeddings_tsv(output_path, news_ids, embeddings):
+    """
+    Зберігає ембеддинги у файл TSV разом з news_id.
+    :param output_path: шлях до файлу
+    :param news_ids: список ідентифікаторів новин
+    :param embeddings: ембеддинги для збереження
+    """
+    with open(output_path, 'w') as f:
+        # Записуємо заголовки
+        f.write("news_id\tembedding\n")
+        for news_id, embedding in zip(news_ids, embeddings):
+            embedding_str = "\t".join(map(str, embedding))
+            f.write(f"{news_id}\t{embedding_str}\n")
 
 def load_embeddings(input_path):
     """

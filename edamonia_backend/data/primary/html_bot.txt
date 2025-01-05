@@ -1,0 +1,11 @@
+<div class="chat-container">
+    <div class="chat-window">
+        <div class="chat-messages" id="chat-messages" style="height: 300px; overflow-y: auto;">
+            <!-- Повідомлення будуть з'являтися тут -->
+        </div>
+        <div class="chat-input">
+            <input type="text" placeholder="Send message ..." id="user-input">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+</div>
