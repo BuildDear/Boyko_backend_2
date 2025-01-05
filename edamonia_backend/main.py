@@ -1,11 +1,10 @@
 import os
 from typing import List
 import importlib
-from data.datasets.gen_test_dataset import generate_10_data
+
 from pydantic import Field, field_validator
 from datetime import datetime
 from fastapi.responses import FileResponse
-from fastapi.middleware.cors import CORSMiddleware
 
 import numpy as np
 import pandas as pd
@@ -16,17 +15,18 @@ import shutil
 from sentence_transformers import SentenceTransformer
 from fastapi.middleware.cors import CORSMiddleware
 
-from edamonia_backend.logic.emb_models.emd import preprocess_and_generate_embeddings, load_embeddings
-from edamonia_backend.logic.preprocessing.chunking import process_txt, save_chunks_to_csv, process_pdf, process_docx, \
+from data.synthetic_data.gen_logic.gen_test_dataset import generate_10_data
+from logic.emb_models.emd import preprocess_and_generate_embeddings, load_embeddings
+from logic.preprocessing.chunking import process_txt, save_chunks_to_csv, process_pdf, process_docx, \
     process_json
-from edamonia_backend.logic.preprocessing.preprocess_data import process_data_embedded, preprocess_text_embedded
-from edamonia_backend.logic.ranking_by_frequency.bm25lus import (
+from logic.preprocessing.preprocess_data import process_data_embedded, preprocess_text_embedded
+from logic.ranking_by_frequency.bm25lus import (
     reindex_bm25,
     load_bm25_index,
     ensure_unique_ids
 )
-from edamonia_backend.logic.ranking_by_frequency.tf_idf import load_tfidf_index, get_tfidf_scores, reindex_tfidf
-from edamonia_backend.logic.responce_by_llm.llm import generate_response
+from logic.ranking_by_frequency.tf_idf import load_tfidf_index, get_tfidf_scores, reindex_tfidf
+from logic.responce_by_llm.llm import generate_response
 
 app = FastAPI()
 
@@ -34,8 +34,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Дозволити всі методи (GET, POST тощо)
-    allow_headers=["*"],  # Дозволити всі заголовки
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 model = SentenceTransformer("intfloat/e5-small")
