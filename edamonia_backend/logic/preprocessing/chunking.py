@@ -6,6 +6,19 @@ from PyPDF2 import PdfReader
 from docx import Document
 
 
+def process_csv(file_path):
+    df = pd.read_csv(file_path)
+
+    if df.empty or len(df.columns) < 2:
+        raise ValueError("CSV файл повинен мати хоча б дві колонки!")
+
+    chunks = df.apply(
+        lambda row: ", ".join(f"{col} = {row[col]}" for col in df.columns),
+        axis=1
+    ).tolist()
+
+    return chunks
+
 
 def chunk_text_with_langchain(text):
     text_splitter = RecursiveCharacterTextSplitter(

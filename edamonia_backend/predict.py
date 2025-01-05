@@ -1,6 +1,7 @@
 import importlib
-from data.datasets.gen_test_dataset import generate_10_data
 import os
+
+from data.synthetic_data.gen_logic.gen_test_dataset import generate_10_data
 
 # Введення даних
 date = input("Введіть дату (у форматі YYYY-MM-DD): ")

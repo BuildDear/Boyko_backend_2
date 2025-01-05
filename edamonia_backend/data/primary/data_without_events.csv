@@ -1,0 +1,10 @@
+Date,Day_of_Week,Season,Weather,Product,Category,Unit_Price,Num_Customers,Sales,Stocks,Shelf_Life,Days_Until_Next_Purchase,Event,Purchase_Quantity
+2004-01-04,Sunday,Winter,Cloudy,Potatoes,Vegetables,1.4,7192,4274993.991547223,17,90,90,,65
+2004-01-01,Thursday,Winter,Cold,Tomatoes,Vegetables,12.5,7314,4387224.756131506,8,10,1,,71
+2004-01-02,Friday,Winter,Cloudy,Cheese,Dairy,28.0,7586,4585087.343015848,16,90,90,,65
+2004-01-04,Sunday,Winter,Cold,Eggs,Dairy,7.2,7659,4561975.4382011015,25,21,21,,62
+2004-01-02,Friday,Winter,Cold,Salmon,Other,36.8,7394,4442916.521659793,24,3,3,,63
+2004-01-02,Friday,Winter,Snowy,Pork,Other,25.6,5902,3539067.8923032056,8,7,1,,65
+2004-01-01,Thursday,Winter,Cloudy,Lettuce,Vegetables,6.0,7509,4520341.506363677,9,5,1,,71
+2004-01-03,Saturday,Winter,Snowy,Lettuce,Vegetables,6.0,5289,3172319.351218079,5,5,1,,60
+2004-01-01,Thursday,Winter,Cold,Apples,Fruits,4.4,7092,4238126.068459155,24,30,30,,60

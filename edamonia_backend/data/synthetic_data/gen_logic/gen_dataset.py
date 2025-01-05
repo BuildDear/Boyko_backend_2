@@ -95,17 +95,18 @@ def generate_synthetic_data(is_event, n_rows):
     df = pd.DataFrame(data, columns=columns)
     return df
 
+#
+# is_event = 1
+#
+# if is_event == 1:
+#     synthetic_data = generate_synthetic_data(is_event, 100000)
+#     synthetic_data.to_csv('dataset_event.csv', index=False)
+# else:
+#     synthetic_data = generate_synthetic_data(is_event, 100000)
+#     synthetic_data.to_csv('dataset.csv', index=False)
 
-is_event = 0
 
-if is_event == 1:
-    synthetic_data = generate_synthetic_data(is_event, 100000)
-    synthetic_data.to_csv('data/datasets/dataset_event.csv', index=False)
-else:
-    synthetic_data = generate_synthetic_data(is_event, 100000)
-    synthetic_data.to_csv('data/datasets/dataset.csv', index=False)
-
-print(synthetic_data.head())
+# print(synthetic_data.head())
 
 ############ corr matrix #######
 # file_path = 'data/datasets/dataset.csv'

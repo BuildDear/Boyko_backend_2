@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from data.synthetic_data.gen_logic.gen_test_dataset import generate_10_data
 from logic.emb_models.emd import preprocess_and_generate_embeddings, load_embeddings
 from logic.preprocessing.chunking import process_txt, save_chunks_to_csv, process_pdf, process_docx, \
-    process_json
+    process_json, process_csv
 from logic.preprocessing.preprocess_data import process_data_embedded, preprocess_text_embedded
 from logic.ranking_by_frequency.bm25lus import (
     reindex_bm25,
@@ -70,7 +70,7 @@ async def main():
 
 
 @app.post("/process-file/", summary="Process and combine uploaded CSV files")
-async def process_csv(files: List[UploadFile] = File(...)):
+async def process_file(files: List[UploadFile] = File(...)):
     """
     Обробляє завантажені файли CSV, об'єднує їх в один файл, забезпечує унікальність ID, створює BM25 індекс та генерує ембеддінги.
     """
@@ -91,12 +91,13 @@ async def process_csv(files: List[UploadFile] = File(...)):
                 shutil.copyfileobj(file.file, buffer)
 
             if file_ext.lower() == ".csv":
-                chunks = process_txt(input_file_path)
+                chunks = process_csv(input_file_path)
+                print('after process_csv')
                 output_file_primary_csv_path = os.path.join(PRIMARY_CSV_DIR_PATH, f"{file_name}_chunks.csv")
                 output_file_cleaned_csv_path = os.path.join(CLEANED_CSV_DIR_PATH, f"{file_name}_chunks.csv")
                 save_chunks_to_csv(chunks, output_file_primary_csv_path)
                 processed_files.append(file.filename)
-                process_data_embedded(output_file_primary_csv_path, output_file_cleaned_csv_path)
+                save_chunks_to_csv(chunks, output_file_cleaned_csv_path)
 
             elif file_ext.lower() == ".txt":
                 chunks = process_txt(input_file_path)
@@ -332,8 +333,7 @@ async def run_prediction(request: PredictionRequest):
     module_path = f"edamonia_backend.logic.train.prediction.{model_class_name}"
 
     try:
-        # Генерація тестових даних на основі event
-        dataset_path = os.path.abspath("data/datasets")
+        dataset_path = os.path.abspath("data/synthetic_data/gen_data")
         test_data = generate_10_data(parsed_date, event_mapping[request.event])
         test_data.to_csv(f"{dataset_path}/10_rows.csv", index=False)
 
