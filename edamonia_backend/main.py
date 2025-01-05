@@ -265,7 +265,7 @@ async def ask(query: QueryModel):
         assistant_response = generate_response(question=query.query, context=context)
         print(f"Assistant response: {assistant_response}")
 
-        print("Returning results...")
+        print("Returning prediction_results...")
         return {
             "query": query.query,
             "ranked_documents": ranked_documents,
@@ -301,6 +301,8 @@ async def run_prediction(request: PredictionRequest):
       - event: None, Holiday, Daily event, Promotions
       - model: XGBoost, CatBoost, LightGBM, LinearRegression, DecisionTree
     """
+    print("Received request with parameters:", request.dict())
+
     # Маппінг event у числові значення
     event_mapping = {
         "None": 0,
@@ -308,6 +310,7 @@ async def run_prediction(request: PredictionRequest):
         "Daily event": 2,
         "Promotion": 3
     }
+    print("Event mapping initialized:", event_mapping)
 
     model_name_mapping = {
         "xgboost": "XGBoost",
@@ -316,31 +319,46 @@ async def run_prediction(request: PredictionRequest):
         "linearregression": "LinearRegression",
         "decisiontree": "DecisionTree"
     }
+    print("Model name mapping initialized:", model_name_mapping)
 
     # Перевірка коректності event
     if request.event not in event_mapping:
+        print(f"Invalid event type: {request.event}")
         raise HTTPException(status_code=400, detail=f"Invalid event type: {request.event}")
 
     # Перевірка коректності моделі
     model_name = request.model.lower()
     if model_name not in model_name_mapping:
+        print(f"Invalid model name: {request.model}")
         raise HTTPException(status_code=400, detail=f"Invalid model name: {request.model}")
 
     # Конвертуємо дату у формат YYYY-MM-DD
     parsed_date = datetime.strptime(request.date, "%d.%m.%Y").strftime("%Y-%m-%d")
+    print("Parsed date:", parsed_date)
 
     model_class_name = model_name_mapping[model_name]
+    print("Selected model class name:", model_class_name)
+
     module_path = f"edamonia_backend.logic.train.prediction.{model_class_name}"
+    print("Module path constructed:", module_path)
 
     try:
         dataset_path = os.path.abspath("data/synthetic_data/gen_data")
+        print("Dataset path resolved:", dataset_path)
+
         test_data = generate_10_data(parsed_date, event_mapping[request.event])
+        print("Generated test data:", test_data.head())
+
         test_data.to_csv(f"{dataset_path}/10_rows.csv", index=False)
+        print("Test data saved to CSV.")
 
         # Імпортуємо файл predict.py динамічно
         module = importlib.import_module(module_path)
+        print("Module imported successfully.")
 
         results = module.train(event_mapping[request.event], dataset_path)
+        print("Prediction results:", results)
+
         return {
             "message": f"Prediction successfully executed using {results['model_name']}",
             "date": parsed_date,
@@ -351,9 +369,12 @@ async def run_prediction(request: PredictionRequest):
         }
 
     except ModuleNotFoundError:
+        print(f"Prediction module '{model_class_name}' not found")
         raise HTTPException(status_code=404, detail=f"Prediction module '{model_class_name}' not found")
     except Exception as e:
+        print("Error during prediction:", str(e))
         raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
+
 
 
 @app.get("/download-result-table")
@@ -387,7 +408,7 @@ async def download_table(model: str):
     return FileResponse(path=file_path, filename=model_mapping[model_name], media_type="application/csv")
 
 
-@app.get("/download-test-results")
+@app.get("/download-test-prediction_results")
 async def download_table(model: str):
     """
     Ендпоінт для завантаження таблиці результатів прогнозування.

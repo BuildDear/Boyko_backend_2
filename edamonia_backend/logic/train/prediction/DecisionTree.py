@@ -56,7 +56,7 @@ def train(events, dataset_path):
     # Step 4: Fit the GridSearchCV
     grid_search.fit(X_train, y)
 
-    # Step 5: Convert results to DataFrame and sort by mean_test_score
+    # Step 5: Convert prediction_results to DataFrame and sort by mean_test_score
     results_df = pd.DataFrame(grid_search.cv_results_)
     results_df['mean_test_score'] = -results_df['mean_test_score']  # Convert MSE to positive
     sorted_results = results_df.sort_values(by='mean_test_score').reset_index(drop=True)

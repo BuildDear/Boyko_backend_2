@@ -37,13 +37,13 @@ def train(events, dataset_path):
     test_mae = mean_absolute_error(y_test, y_test_pred)
     test_r2 = r2_score(y_test, y_test_pred)
 
-    # Step 10: Save test set results to a DataFrame
+    # Step 10: Save test set prediction_results to a DataFrame
     test_results_df = pd.DataFrame({
         'Metric': ['MSE', 'RMSE', 'MAE', 'R2'],
         'Value': [test_mse, test_rmse, test_mae, test_r2]
     })
 
-    # Step 11: Save test set results to CSV
+    # Step 11: Save test set prediction_results to CSV
     test_results_df.to_csv('edamonia_backend/logic/train/prediction_results/LinearRegression_results.csv', index=False, encoding='utf-8-sig')
 
     print("\nTest Set Metrics:")

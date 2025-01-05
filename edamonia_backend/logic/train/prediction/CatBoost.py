@@ -59,13 +59,13 @@ def train(events, dataset_path):
     # Step 5: Fit GridSearchCV
     grid_search.fit(X_train, y)
 
-    # Step 6: Convert results to DataFrame and sort by mean_test_score
+    # Step 6: Convert prediction_results to DataFrame and sort by mean_test_score
     results_df = pd.DataFrame(grid_search.cv_results_)
     results_df['mean_test_score'] = -results_df['mean_test_score']  # Convert MSE to positive for easier interpretation
     sorted_results = results_df.sort_values(by='mean_test_score').reset_index(drop=True)
 
     # Step 7: Select rows for the table
-    selected_rows = sorted_results.head(5)  # Top 5 results
+    selected_rows = sorted_results.head(5)  # Top 5 prediction_results
 
     # Step 8: Create table for the article
     table = selected_rows[

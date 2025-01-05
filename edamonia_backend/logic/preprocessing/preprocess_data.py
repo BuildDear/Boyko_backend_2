@@ -164,7 +164,7 @@ def preprocess_text_frequency(text):
 
 def process_data_embedded(input_path, output_path):
     """
-    Process textual data from a CSV file, apply preprocessing, and save the processed results to a new CSV file.
+    Process textual data from a CSV file, apply preprocessing, and save the processed prediction_results to a new CSV file.
     :param input_path: The file path to the input CSV containing 'content' and 'news_id' columns.
     :param output_path: The file path to save the processed CSV.
     :return: None. Saves the processed file at the output path.
@@ -186,7 +186,7 @@ def process_data_embedded(input_path, output_path):
 
 def process_data_frequency(input_path, output_path):
     """
-    Process textual data from a CSV file, apply preprocessing, and save the processed results to a new CSV file.
+    Process textual data from a CSV file, apply preprocessing, and save the processed prediction_results to a new CSV file.
     :param input_path: The file path to the input CSV containing 'content' and 'news_id' columns.
     :param output_path: The file path to save the processed CSV.
     :return: None. Saves the processed file at the output path.

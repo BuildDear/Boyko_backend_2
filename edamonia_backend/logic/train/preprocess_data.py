@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder, StandardScaler, LabelEncoder
 import numpy as np
@@ -67,7 +69,15 @@ def preprocess_data(file_path, is_event):
         df = df.drop(['Event', 'Event_Grouped'], axis=1)
     else:
         df = df.drop(columns='Event')
-    df.to_csv('data/datasets/encoding_result.csv', index=False)
+        # Перевірка чи існує папка для збереження результатів
+        results_dir = 'prediction_results'
+        if not os.path.exists(results_dir):
+            os.makedirs(results_dir)
+            print(f"Directory '{results_dir}' created.")
+
+        # Збереження результатів у файл
+        df.to_csv(os.path.join(results_dir, 'encoding_result.csv'), index=False)
+        print(f"File saved to {os.path.join(results_dir, 'encoding_result.csv')}")
 
     # Split features and target
     X = df.drop(['Purchase_Quantity'], axis=1)  # Features

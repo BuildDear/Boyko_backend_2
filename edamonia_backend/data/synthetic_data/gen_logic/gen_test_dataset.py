@@ -1,7 +1,7 @@
 import pandas as pd
 import random
 from datetime import datetime
-from additional_functions import determine_season, generate_num_customers, generate_sequential_date, generate_date_with_event, get_event, get_stock, next_purchase, get_category, determine_quantity, get_price, get_average_check, get_shelf_life, seasonal_weather
+from ..gen_logic.additional_functions import determine_season, generate_num_customers, generate_sequential_date, generate_date_with_event, get_event, get_stock, next_purchase, get_category, determine_quantity, get_price, get_average_check, get_shelf_life, seasonal_weather
 
 # Parameters for data generation
 products = ['Milk', 'Eggs', 'Chicken', 'Tomatoes', 'Apples', 'Salmon', 'Cheese', 'Lettuce', 'Pork', 'Potatoes']
