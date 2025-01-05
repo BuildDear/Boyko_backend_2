@@ -18,10 +18,10 @@ def train(events, dataset_path):
         X_test, y_test = preprocess_data(test_path, 0)
 
         param_grid = {
-            'n_estimators': [50, 100, 200],  # Кількість дерев
-            'learning_rate': [0.05, 0.1, 0.2],  # Темп навчання
-            'max_depth': [3, 5, 7],  # Глибина дерева
-            'num_leaves': [15, 31, 50]  # Кількість листків
+            'n_estimators': [200],  # Кількість дерев
+            'learning_rate': [0.1],  # Темп навчання
+            'max_depth': [7],  # Глибина дерева
+            'num_leaves': [15]  # Кількість листків
         }
     else:
         file_path = os.path.join(dataset_path, "dataset_event.csv")
@@ -31,10 +31,10 @@ def train(events, dataset_path):
         X_test, y_test = preprocess_data(test_path, 1)
 
         param_grid = {
-            'n_estimators': [50, 100, 200],  # Кількість дерев
-            'learning_rate': [0.05, 0.1, 0.2],  # Темп навчання
-            'max_depth': [3, 5, 7],  # Глибина дерева
-            'num_leaves': [15, 31, 50]  # Кількість листків
+            'n_estimators': [200],  # Кількість дерев
+            'learning_rate': [0.1],  # Темп навчання
+            'max_depth': [7],  # Глибина дерева
+            'num_leaves': [15]  # Кількість листків
         }
     raw_test = pd.read_csv(test_path)
 
@@ -42,11 +42,6 @@ def train(events, dataset_path):
     np.random.seed(42)  # Для відтворюваності
     noise = np.random.normal(0, noise_level, X_scaled.shape)
     X_train = X_scaled + noise
-
-    # Застосування PCA
-    pca = PCA(n_components=0.95)  # Зберігати 95% варіації
-    X_train_pca = pca.fit_transform(X_train)
-    X_test_pca = pca.transform(X_test)
 
     tscv = TimeSeriesSplit(n_splits=5)
     lgbm_model = LGBMRegressor(objective='regression', random_state=42, verbose=-1)

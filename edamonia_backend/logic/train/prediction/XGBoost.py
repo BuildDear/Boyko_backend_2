@@ -16,9 +16,9 @@ def train(events, dataset_path):
         X_test, y_test = preprocess_data(test_path, 0)
 
         param_grid = {
-            'n_estimators': [50, 60, 100],  # Кількість дерев
-            'learning_rate': [0.1, 0.15, 0.2],  # Темп навчання
-            'max_depth': [7, 8, 9]  # Глибина дерева
+            'n_estimators': [50],  # Кількість дерев
+            'learning_rate': [0.15],  # Темп навчання
+            'max_depth': [8]  # Глибина дерева
         }
     else:
         file_path = os.path.join(dataset_path, "dataset_event.csv")
@@ -28,9 +28,9 @@ def train(events, dataset_path):
         X_test, y_test = preprocess_data(test_path, 1)
 
         param_grid = {
-            'n_estimators': [50, 60, 100],  # Number of trees
-            'learning_rate': [0.1, 0.15, 0.2],  # Learning rate
-            'max_depth': [7, 8, 9]  # Tree depth
+            'n_estimators': [50],  # Number of trees
+            'learning_rate': [0.15],  # Learning rate
+            'max_depth': [8]  # Tree depth
         }
     raw_test = pd.read_csv(test_path)
 

@@ -16,10 +16,10 @@ def train(events, dataset_path):
         X_scaled, y = preprocess_data(file_path, 1)
         X_test, y_test = preprocess_data(test_path, 1)
         param_grid = {
-            'iterations': [500, 510, 520],  # Кількість ітерацій
-            'learning_rate': [0.04, 0.05],  # Темп навчання
-            'depth': [7, 8],  # Глибина дерева
-            # 'l2_leaf_reg': [3, 5, 7]
+            'iterations': [500],  # Кількість ітерацій
+            'learning_rate': [0.04],  # Темп навчання
+            'depth': [7],  # Глибина дерева
+            'l2_leaf_reg': [5]
         }
     else:
         file_path = os.path.join(dataset_path, "dataset.csv")
@@ -29,10 +29,10 @@ def train(events, dataset_path):
         X_test, y_test = preprocess_data(test_path, 0)
 
         param_grid = {
-            'iterations': [300, 400, 500],  # Кількість ітерацій
-            'learning_rate': [0.04, 0.05, 0.06],  # Темп навчання
-            'depth': [7, 8],  # Глибина дерева
-            # 'l2_leaf_reg': [3, 5, 7]
+            'iterations': [500],  # Кількість ітерацій
+            'learning_rate': [0.04],  # Темп навчання
+            'depth': [7],  # Глибина дерева
+            'l2_leaf_reg': [5]
         }
     raw_test = pd.read_csv(test_path)
 

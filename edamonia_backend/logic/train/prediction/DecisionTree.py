@@ -6,7 +6,6 @@ from edamonia_backend.logic.train.preprocess_data import preprocess_data, prepro
 import numpy as np
 import os
 
-
 def train(events, dataset_path):
     if events == 0:
         file_path = os.path.join(dataset_path, "dataset.csv")
@@ -17,9 +16,9 @@ def train(events, dataset_path):
 
         # Step 3: Define parameter grid for GridSearchCV
         param_grid = {
-            'max_depth': [15, 16],
-            'min_samples_split': [15, 16, 17, 18],
-            'min_samples_leaf': [14, 15, 16, 17]
+            'max_depth': [14],
+            'min_samples_split': [16],
+            'min_samples_leaf': [15]
         }
     else:
         file_path = os.path.join(dataset_path, "dataset_event.csv")
@@ -29,9 +28,9 @@ def train(events, dataset_path):
         X_test, y_test = preprocess_data(test_path, 1)
         # Step 3: Define parameter grid for GridSearchCV
         param_grid = {
-            'max_depth': [15, 16],  # Глибина дерева
-            'min_samples_split': [15, 16, 17, 18, 19],  # Мінімальна кількість зразків для розбиття вузла
-            'min_samples_leaf': [14, 15, 16, 17, 18]  # Мінімальна кількість зразків у листі
+            'max_depth': [15],
+            'min_samples_split': [18],
+            'min_samples_leaf': [17]
         }
     raw_test = pd.read_csv(test_path)
 
