@@ -1,56 +1,30 @@
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from litellm import completion
 
-model_id = "BSC-LT/salamandra-2b-instruct"
-
-
-model = AutoModelForCausalLM.from_pretrained(
-    model_id,
-    device_map="auto",
-    torch_dtype=torch.bfloat16,
-    trust_remote_code=True,
-    low_cpu_mem_usage=True
-)
-tokenizer = AutoTokenizer.from_pretrained(
-    model_id,
-    trust_remote_code=True
-)
-
-tokenizer.chat_template = "default"
-
-
-def generate_assistant_response(question: str):
-    """
-    Генерує відповідь на будь-яке запитання, використовуючи модель.
-    """
+def generate_response(question, context):
     prompt = (
-        f"You are a highly intelligent and helpful assistant. Answer the following question in a clear and concise manner:\n\n"
-        f"Question: {question}\n\n"
-        f"Answer:"
+        f"Ти є ввічливим українським асистентом, який ввічливо відповідає на основі переданих знань.Чітко, розгорнуто та ввічливо відповідай на питання.\n\n"
+        f"Правила:\n"
+        f"- Не згадуй ні за які питання, лише розгорнуто та чітко давай відповід.\n"
+        f"- Використовуйте лише інформацію, наданих занань, для формування відповіді.\n"
+        f"- Якщо відповідь явно присутня в знаннях, надайте чітку та точну відповідь.\n"
+        f"- Якщо відповідь не може бути знайдена в контексті, відповідайте лише: 'Вибачте, я не зміг знайти відповідь у наданому контексті.'\n"
+        f"- Не здогадуйтесь, не припускайте та не вигадуйте інформацію. Дотримуйтесь строго меж наданого контексту.\n"
+        f"- Додаткові знання: {context}\n"
     )
 
-    messages = [
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": prompt}
-    ]
-
-    text = tokenizer.apply_chat_template(
-        messages,
-        tokenize=False,
-        add_generation_prompt=True
+    response = completion(
+        model="groq/llama3-8b-8192",
+        messages=[
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": question},
+        ],
+        stream=True,
     )
 
-    model_inputs = tokenizer([text], return_tensors="pt").to(model.device)
+    generated_text = ""
+    for chunk in response:
+        content = chunk["choices"][0]['delta'].get('content', None)
+        if content:
+            generated_text += content
 
-    # Генерація відповіді
-    generated_ids = model.generate(
-        **model_inputs,
-        max_new_tokens=512,  # Обмеження довжини відповіді
-        temperature=0.4,  # Контроль креативності
-        do_sample=True,  # Використання семплювання для варіативності
-    )
-
-    response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-
-    return response.strip()
-
+    return generated_text.strip()

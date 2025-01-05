@@ -179,7 +179,7 @@ def process_data_embedded(input_path, output_path):
     processed_corpus = [preprocess_text_embedded(text) for text in tqdm(corpus, total=len(corpus))]
 
     # Save the processed corpus to a CSV
-    df = pd.DataFrame({'news_id': documents_df['news_id'], 'content': processed_corpus})
+    df = pd.DataFrame({'chunk_id': documents_df['chunk_id'], 'content': processed_corpus})
     df.to_csv(output_path, index=False)
     print(f"File {output_path} created successfully.")
 
@@ -201,6 +201,6 @@ def process_data_frequency(input_path, output_path):
     processed_corpus = [preprocess_text_frequency(text) for text in tqdm(corpus, total=len(corpus))]
 
     # Save the processed corpus to a CSV
-    df = pd.DataFrame({'news_id': documents_df['news_id'], 'content': processed_corpus})
+    df = pd.DataFrame({'chunk_id': documents_df['chunk_id'], 'content': processed_corpus})
     df.to_csv(output_path, index=False)
     print(f"File {output_path} created successfully.")
