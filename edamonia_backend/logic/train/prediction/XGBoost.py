@@ -94,6 +94,7 @@ def train(events, dataset_path):
     print(table)
 
     results_dir = os.path.abspath(os.path.join(os.getcwd(), '..', 'prediction_results'))
+    predict_path_emb = os.path.abspath("data/primary")
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
         print(f"Directory '{results_dir}' created.")
@@ -140,6 +141,7 @@ def train(events, dataset_path):
     custom_test_data.loc[:, 'Predict_Quantity'] = custom_test_predictions
     custom_test_data = custom_test_data.drop('Purchase_Quantity', axis=1)
     custom_test_data.to_csv(os.path.join(results_dir, 'XGBoost_predict.csv'), index=False, encoding='utf-8-sig')
+    custom_test_data.to_csv(os.path.join(predict_path_emb, 'XGBoost.csv'), index=False, encoding='utf-8-sig')
     print("Custom test predictions saved to CSV.")
 
     raw_test['Predicted_Purchase_Quantity'] = y_test_pred
@@ -151,10 +153,8 @@ def train(events, dataset_path):
         "parameters": {
             "n_estimators": best_params["n_estimators"],
             "learning_rate": best_params["learning_rate"],
-            "max_depth": best_params["max_depth"]
-        },
-        "cv_metrics": {
-            "mse": best_score
+            "max_depth": best_params["max_depth"],
+            "MSE (mean)": best_score
         },
         "test_metrics": {
             "mse": test_mse,

@@ -97,7 +97,9 @@ def train(events, dataset_path):
     table['R² (крос-валідація)'] = r2_scores
 
     # Step 11: Save table to CSV
-    table.to_csv('edamonia_backend/logic/train/prediction_results/LightGBM_results.csv', index=False, encoding='utf-8-sig')
+    results_dir = os.path.abspath(os.path.join(os.getcwd(), '..', 'prediction_results'))
+    predict_path_emb = os.path.abspath("data/primary")
+    table.to_csv(os.path.join(results_dir, 'LightGBM_results.csv'), index=False, encoding='utf-8-sig')
 
     # Step 11: Make predictions using the best model from GridSearchCV
     best_model = grid_search.best_estimator_
@@ -143,13 +145,13 @@ def train(events, dataset_path):
     custom_test_data['Predict_Quantity'] = custom_test_predictions
     custom_test_data = custom_test_data.drop('Purchase_Quantity', axis=1)
     # Step 17: Save the updated table with predictions
-    custom_test_data.to_csv('edamonia_backend/logic/train/prediction_results/LightGBM_predict.csv', index=False, encoding='utf-8-sig')
+    custom_test_data.to_csv(os.path.join(results_dir, 'LightGBM_predict.csv'), index=False, encoding='utf-8-sig')
+    custom_test_data.to_csv(os.path.join(predict_path_emb, 'LightGBM.csv'), index=False, encoding='utf-8-sig')
 
     raw_test['Predicted_Purchase_Quantity'] = y_test_pred
 
     # Збереження нової таблиці до CSV
-    raw_test.to_csv('edamonia_backend/logic/train/prediction_results/LightGBM_test_predictions.csv', index=False, encoding='utf-8-sig')
-
+    raw_test.to_csv(os.path.join(results_dir, 'LightGBM_test_predictions.csv'), index=False, encoding='utf-8-sig')
 
     return {
         "model_name": "LightGBM",
@@ -157,10 +159,8 @@ def train(events, dataset_path):
             "n_estimators": best_params['n_estimators'],
             "num_leaves": best_params["num_leaves"],
             "learning_rate": best_params["learning_rate"],
-            "max_depth": best_params["max_depth"]
-        },
-        "cv_metrics": {
-            "mse": best_score
+            "max_depth": best_params["max_depth"],
+            "MSE (mean)": best_score
         },
         "test_metrics": {
             "mse": test_mse,

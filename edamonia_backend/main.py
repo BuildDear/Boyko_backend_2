@@ -49,6 +49,9 @@ COMBINED_FILE_CSV_PATH = "data/csv_files/combined/combined_cleaned.csv"
 PRIMARY_COMBINED_FILE_CSV_PATH = "data/csv_files/combined/combined_primary.csv"
 EMBEDDINGS_FILE_PATH = "data/csv_files/combined_cleaned_embeddings.npy"
 EMBEDDINGS_TSV_FILE_PATH = "data/csv_files/combined_cleaned_embeddings.tsv"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FILES_DIR = os.path.join(BASE_DIR, "data", "primary")
+
 
 
 os.makedirs(PRIMARY_CSV_DIR_PATH, exist_ok=True)
@@ -68,6 +71,22 @@ async def main():
     """
     return {"message": "Files uploaded successfully"}
 
+
+
+@app.get("/files/{file_name}", response_class=FileResponse)
+async def get_file(file_name: str):
+    """
+    Віддає файл із локальної файлової системи за HTTP-запитом.
+    """
+    # Формуємо повний шлях до файлу
+    file_path = os.path.join(FILES_DIR, file_name)
+
+    # Перевіряємо, чи існує файл
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Файл не знайдено")
+
+    # Віддаємо файл
+    return FileResponse(file_path)
 
 @app.post("/process-file/", summary="Process and combine uploaded CSV files")
 async def process_file(files: List[UploadFile] = File(...)):
@@ -364,7 +383,6 @@ async def run_prediction(request: PredictionRequest):
             "date": parsed_date,
             "event": request.event,
             "parameters": results.get("parameters"),  # None для LinearRegression
-            "cv_metrics": results.get("cv_metrics"),  # None для LinearRegression
             "test_metrics": results.get("test_metrics"),
         }
 
@@ -374,7 +392,6 @@ async def run_prediction(request: PredictionRequest):
     except Exception as e:
         print("Error during prediction:", str(e))
         raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
-
 
 
 @app.get("/download-result-table")
@@ -397,8 +414,7 @@ async def download_table(model: str):
     if model_name not in model_mapping:
         raise HTTPException(status_code=400, detail=f"Invalid model name: {model}")
 
-    # Формуємо шлях до файлу
-    file_path = os.path.join("edamonia_backend", "logic", "train", "prediction_results", model_mapping[model_name])
+    file_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'prediction_results', model_mapping[model_name]))
 
     # Перевірка наявності файлу
     if not os.path.exists(file_path):
@@ -408,7 +424,7 @@ async def download_table(model: str):
     return FileResponse(path=file_path, filename=model_mapping[model_name], media_type="application/csv")
 
 
-@app.get("/download-test-prediction_results")
+@app.get("/download-test-results")
 async def download_table(model: str):
     """
     Ендпоінт для завантаження таблиці результатів прогнозування.
@@ -429,7 +445,7 @@ async def download_table(model: str):
         raise HTTPException(status_code=400, detail=f"Invalid model name: {model}")
 
     # Формуємо шлях до файлу
-    file_path = os.path.join("edamonia_backend", "logic", "train", "prediction_results", model_mapping[model_name])
+    file_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'prediction_results', model_mapping[model_name]))
 
     # Перевірка наявності файлу
     if not os.path.exists(file_path):

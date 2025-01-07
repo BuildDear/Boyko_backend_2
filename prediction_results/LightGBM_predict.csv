@@ -1,0 +1,11 @@
+﻿Date,Day_of_Week,Season,Weather,Product,Category,Unit_Price,Num_Customers,Sales,Stocks,Shelf_Life,Days_Until_Next_Purchase,Event,Predict_Quantity
+2025-01-08,Wednesday,Winter,Cold,Milk,Dairy,56.38,6576,4091888.043020025,13,7,7,Daily event,32.84199444653777
+2025-01-08,Wednesday,Winter,Cold,Eggs,Dairy,78.07,6576,4091888.043020025,11,21,21,Daily event,34.26142169625722
+2025-01-08,Wednesday,Winter,Cold,Chicken,Meat,211.43,6576,4091888.043020025,24,5,5,Daily event,36.381726045167696
+2025-01-08,Wednesday,Winter,Cold,Tomatoes,Vegetables,135.53,6576,4091888.043020025,18,10,10,Daily event,34.78593468637963
+2025-01-08,Wednesday,Winter,Cold,Apples,Fruits,47.71,6576,4091888.043020025,20,30,30,Daily event,34.05688697614134
+2025-01-08,Wednesday,Winter,Cold,Salmon,Seafood,399.01,6576,4091888.043020025,14,3,3,Daily event,40.070042649385414
+2025-01-08,Wednesday,Winter,Cold,Cheese,Dairy,303.59,6576,4091888.043020025,8,9,1,Daily event,33.62672862155033
+2025-01-08,Wednesday,Winter,Cold,Lettuce,Vegetables,65.06,6576,4091888.043020025,8,5,1,Daily event,35.85788584111742
+2025-01-08,Wednesday,Winter,Cold,Pork,Meat,277.57,6576,4091888.043020025,4,7,1,Daily event,35.441184132322114
+2025-01-08,Wednesday,Winter,Cold,Potatoes,Vegetables,15.18,6576,4091888.043020025,6,9,1,Daily event,34.11639454223355
